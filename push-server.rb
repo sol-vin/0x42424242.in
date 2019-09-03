@@ -2,21 +2,20 @@
 
 require 'sinatra'
 
+# Bind this publicly so github's webhooks can POST
 set :bind, '0.0.0.0'
 set :port, 33333
 
+# How many times has a rebuild been invoked?
 $counter = 0
 $time_start = Time.now
 $last_restart = Time.now
 $server_thread = Thread.new {}
-$base_directory = Dir.pwd
 
 def start_web_server
-  puts "Starting server"
   $server_thread = Thread.new do
     `$(cd 0x42424242.in && bundle exec jekyll serve --host 0.0.0.0 --port 30000)`
   end
-  puts "Started server"
 end
 
 start_web_server
@@ -30,15 +29,14 @@ get('/github-hook') do
 end
 
 post('/github-hook') do
-  $counter += 1  
-  puts "!!!!! killing #{get_jekyll_pid}"
   `kill -9 #{get_jekyll_pid}`
   $server_thread.join
-  puts "!!!!!! KILLED!"
   `rm -rf 0x42424242.in`
   `git clone git@specialgithuburl.com:redcodefinal/0x42424242.in.git`
   `mv -f 0x42424242.in/0x42424242.in/* 0x42424242.in/`
   start_web_server
+  
+  $counter += 1  
   $last_restart = Time.now
 end
 

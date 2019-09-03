@@ -23,8 +23,8 @@ email: ian@0x42424242.in
 description: A place of stuff
 baseurl: "/" # the subpath of your site, e.g. /blog
 url: "http://0x42424242.in" # the base hostname & protocol for your site, e.g. http://example.com
-twitter_username: redcodefinal
 github_username: redcodefinal
+linkedin_username: ian-rash-24157345
 
 # Build settings
 theme: minima
