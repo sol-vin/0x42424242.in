@@ -1,0 +1,40 @@
+---
+layout: post
+title:  "VStarCam - An Investigative Journey 4 - Sniffing Android Client"
+date:   2019-09-03 03:00:00 +0100
+categories: jekyll update
+---
+I figured since a majority of people would be using the Android client, I would start my audit there. The Android app, Eye4, is available in two separate downloads, one from the [Eye4 site](http://www.eye4.so/AppDown.html), and one from the [Play store](https://play.google.com/store/apps/details?id=vstc.vscam.client&hl=en). They also have a [Windows download](http://www.eye4.so/download/), which I will audit later.
+
+The first thing I wanted to do is compare the Play store APK with the Eye4 site APK to see if there is any foul play going on, but unfortunately their personal download on the site didn't work and lead to a blank page.
+
+We want to start our network sniffer, and begin our testing process.
+
+First thing we want to do is boot the camera up after resetting it for the first time. This makes sure we have a clean slate when working with the camera. We will be resetting the camera multiple times to make sure we have lots of samples to compare. 
+
+Without connecting to any client, we will boot the camera up, connect to our sniffer, capture all the boot network data, then reset the camera, stop capture, and restart the whole thing. We do this about 2-3 times to get an idea of what the booting process looks like.
+
+After that, we will connect the camera to the client, by searching for LAN in the client and connecting that way. Delete the camera, reset, then try it again. Do this multiple times to get multiple captures.
+
+After that, we will fully connect the camera to the app, changing the password, as well as using various features, such as camera control, taking videos/pictures, changing settings, etc.
+
+Once we are satisfied with our captures, we will begin dissecting them packet by packet.
+
+## Boot Sequence
+
+First impressions of boot sequence captures, what do we notice?
+
+
+1. Take a look at some of the packets in the capture.
+  1. Do we see packets that have similar contents?
+  2. Can we see similar parts of packets that have small contents changed or replaced.
+  3. Do we see plaintext words/phrases?
+  4. Do we see commonly known numbers, ids, serial numbers, etc?
+
+If you answered yes to any of these then the device most likely doesn't use encryption. This also means the device leaks data.
+
+So let's go through the packets.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark1.png" style="width: 100%; height: 100%;">
+</center>
