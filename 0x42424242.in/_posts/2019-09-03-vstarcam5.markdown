@@ -2,7 +2,8 @@
 layout: post
 title:  "VStarCam - An Investigative Journey 5 - Writing a Client"
 date:   2019-09-03 04:00:00 +0100
-categories: jekyll update
+tags: [vstarcam, hacking, ipc]
+permalink: /vstarcam/5
 ---
 
 Now that we have learned some interesting things about the communications, let's see if we can write our own suite of tools to work with the camera.

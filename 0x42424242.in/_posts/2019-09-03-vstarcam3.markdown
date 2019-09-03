@@ -2,7 +2,8 @@
 layout: post
 title:  "VStarCam - An Investigative Journey 3 - Enumeration"
 date:   2019-09-03 02:00:00 +0100
-categories: jekyll update
+tags: [vstarcam, hacking, ipc]
+permalink: /vstarcam/3
 ---
 
 Before I work on sniffing the client communications, I wanted to try a little discovery first to see anything interesting with the device.

@@ -2,7 +2,8 @@
 layout: post
 title:  "VStarCam - An Investigative Journey 4 - Sniffing Android Client"
 date:   2019-09-03 03:00:00 +0100
-categories: jekyll update
+tags: [vstarcam, hacking, ipc]
+permalink: /vstarcam/4
 ---
 
 I figured since a majority of people would be using the Android client, I would start my audit there. The Android app, Eye4, is available in two separate downloads, one from the [Eye4 site](http://www.eye4.so/AppDown.html), and one from the [Play store](https://play.google.com/store/apps/details?id=vstc.vscam.client&hl=en). They also have a [Windows download](http://www.eye4.so/download/), which I will audit later.
