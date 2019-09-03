@@ -5,6 +5,9 @@ date:   2019-09-03 04:00:00 +0100
 categories: jekyll update
 ---
 
+<pre><code class="crystal">
+</code></pre>
+
 Now that we have learned some interesting things about the communications, let's see if we can write our own suite of tools to work with the camera.
 
 Before we start, I'll be using the wonderful programming language from the boys over at Crystal. It's a very fast, statically typed language, with very zen and down to Earth syntax. The meta-programming aspect of the language is very cool!
@@ -17,7 +20,8 @@ From what we can see right now the camera and client go through different states
 class Client
   STATES = [:nothing,
             :send_dbp, 
-            :wait_for_dbr,
+         <pre><code class="crystal">
+</code></pre>   :wait_for_dbr,
             :send_bcp, 
             :handle_bp_handshake,
             :main_phase,
@@ -33,3 +37,429 @@ class Client
   end
 end 
 </code></pre>
+
+The idea is that whenever we change the state of our client, we are moving to the next phase of communication. 
+
+Next big thing we need to talk about are Fibers. If you are unfamiliar with them, I would suggest reading [this article](https://crystal-lang.org/reference/guides/concurrency.html).
+
+We have two main tasks, we need to have a **Data Loop**, which will take data in from ports (depending on the state of the client, choose which port to use), and then take that data and shovel it off into a [channel](https://crystal-lang.org/api/0.27.2/Channel.html). Then we will have the **Tick Loop**, which will run the decisions to be made on the incoming data.
+
+## Starting the client
+
+One of the first things we want to be able to do is start the client, and have it "idle" while waiting for connections.
+
+<pre><code class="crystal">
+  # Sets up the client by binding the udp sockets to addresses and ports
+  def setup
+    # Don't resetup the client if its is_running
+    if !is_running?
+      LOG.info("Opening ports")
+      # Our socket for sending UDP data to the camera
+      @data_sock.bind DATA_SOCK_SRC
+      # Super important to enable this or else we can't broadcast to 255.255.255.255!
+      @data_sock.setsockopt LibC::SO_BROADCAST, 1
+      # Our socket for sending discovery broadcasts.
+      @db_sock.bind DB_SOCK_SRC
+      @db_sock.setsockopt LibC::SO_BROADCAST, 1
+
+      LOG.info("Ports opened")
+      return
+    else
+      LOG.error "CANNOT SETUP CLIENT WHILE IT IS RUNNING!"
+      raise "CANNOT SETUP CLIENT WHILE IT IS RUNNING!"
+    end
+  end
+
+  def run
+    # Dont allow the client to run again!
+    if !is_running?
+      @is_running = true
+      # Change the state so it will attempt to discover a camera on the network
+      @state = :send_dbp
+      #Start our fibers
+      start_data_fiber
+      start_tick_fiber
+    else
+      LOG.error "ALREADY RUNNING CLIENT!" 
+    end
+  end
+</code></pre>
+
+The main idea is that we set up the client, making a variable that will track if it's running or not. It also sets up the ports we need to communicate our discovery broadcast, as well as the UDP data socket. We also have a method run which will stop the method if it is already running, change the state to the first phase, then start our fibers for data and tick.
+
+## Fiber Design
+<pre><code class="crystal">
+  # Channel that will communicate data back to the tick fiber
+  @data_channel = Channel(Tuple(String, Socket::IPAddress)).new
+
+  # Fiber which deals with incoming packet data, holds this data temporarily and then sends the data via @data_channel to the tick fiber.
+  @data_fiber : Fiber = spawn {}
+
+  # Fiber which handles the decision process of handling the state of the client. Recieves incoming data  from data_channel and processes it
+  @tick_fiber : Fiber = spawn {} 
+</code></pre>
+
+Then we want to write our two "start fiber" methods. We reassign the fiber variable for the action, trap any exceptions and rescue them out (specifically for the case of the ports shutting down while sending data), create a while loop with is_running? as a condition, and then fill in the meat of the fibers.
+
+Data fiber will block on the data socket, then transfer any data received to the  channel.
+
+Tick fiber will run the update tick continually until the client is no longer running.
+
+<pre><code class="crystal">
+# Start the fiber which blocks for incoming data, then forwards it to a channel.
+def start_data_fiber
+  @data_fiber = spawn do
+    begin
+      # Only run this fiber while is_running, if not exit
+      while is_running?
+        # Will block execution
+        packet = data_sock.receive
+        @data_channel.send(packet)
+      end
+    rescue e
+      LOG.info "DATA EXCEPTION #{e}"
+    end
+  end
+end
+
+# Start the fiber which contains the tick logic.
+def start_tick_fiber
+  @tick_fiber = spawn do
+    begin
+      # Only run this fiber while is_running, if not exit
+      while is_running?
+        tick
+      end
+    rescue e
+      LOG.info "TICK EXCEPTION #{e}"
+    end
+  end
+end
+</code></pre>
+
+## Closing the client
+When the data fiber is blocked, there is no way to "kill" the fiber when we want the program to exit. Instead, we need to simulate some data into the socket, freeing the fiber to execute and close itself.
+
+First we turn @is_running to false, then send the "unblock fiber data" into the data socket. We then use a Fiber.yield to give control back to the data fiber.
+While we can't give control back directly to the data fiber, we know that the tick fiber will most likely be blocked and the data fiber will get it's turn.
+
+We then close the sockets, change_state to closing, and set the target camera back to 0.
+
+<pre><code class="crystal">
+UNBLOCK_FIBER_DATA = "e127e855-36d2-43f1-82c0-95f2ba5fe800"
+def close
+  LOG.info("Closing client")
+  @is_running = false
+  change_state(:closing)
+
+  # This line unblocks the @data_fiber
+  @data_sock.send(UNBLOCK_FIBER_DATA, Socket::IPAddress.new("127.0.0.1", DATA_SOCK_SRC.port))
+
+  # Force a fiber change to go to the other fibers to end them
+  Fiber.yield
+
+  # Now we can close the sockets
+  @data_sock.close
+  @db_sock.close
+
+  # Reset the target_camera
+  new_target "0.0.0.0", 0
+  change_state(:closed)
+  LOG.info("Closed client")
+end
+</code></pre>
+
+## Tick Layout
+In the tick method, we want to layout a basic pattern of transitions for the client.
+
+<pre><code class="crystal">
+# Main decision making function
+def tick
+  if state == :nothing
+    # Do nothing
+  elsif state == :send_dbp
+    send_dbp
+    change_state :wait_for_dbr
+  elsif state == :wait_for_dbr
+    info = wait_for_dbr
+    if info
+      @target_info = info
+      change_state :send_bcp
+    else
+      change_state :send_dbp
+    end
+  elsif state == :send_bcp
+    send_bcp
+    change_state :handle_bp_handshake
+  elsif state == :handle_bp_handshake
+    handle_bp_handshake
+
+    if has_target?
+      change_state :main_phase
+    else
+      change_state :send_dbp
+    end
+  elsif state == :main_phase
+    # Do ping pong, etc in here
+    main_phase
+  else
+    raise "THERE WAS A BAD IN TICK!"
+  end
+end
+</code></pre>
+
+## DBP and DBR
+
+We need to send our DBP, so we can start to discover cameras. This process is fairly straight forward.
+
+<pre><code class="crystal">
+# Source address for the discovery packet
+DB_SOCK_SRC = Socket::IPAddress.new("0.0.0.0", 6801)
+
+# Destination address for the discovery packet
+DB_SOCK_DST = Socket::IPAddress.new("255.255.255.255", 8600)
+
+# Discovery packet data
+DBP = "\x44\x48\x01\x01"
+
+# Send the DBP to the camera
+def send_dbp
+  LOG.info("Sending DBP")
+  db_sock.send(DBP, DBP_SOCK_DST)
+  LOG.info("Sent DBP")
+end
+</code></pre>
+
+After sending we want to wait until the camera responds with the DBR. We also want to parse some of the data coming in, as it has some juicy info we might want to reference later.
+
+<pre><code class="crystal">
+# Size of the discovery packet reply
+DBR_SIZE = 570
+
+# Regex to check if a packet is a DBR
+DBR_REGEX = /^DH/
+
+# Wait for the DBR to come back from the camera.
+def wait_for_dbr : Hash(Symbol, String)?
+  LOG.info("Waiting for DBR")
+  packet = db_sock.receive
+  if packet
+    if check_dbr(packet)
+      info = parse_dbr(packet)
+      LOG.info("DBR RECEIVED FROM #{info[:camera_ip]}, UID: #{info[:uid]}")
+      return info
+    else
+      LOG.info("BAD/NON DBR RECEIVED! #{packet[0].bytes.map {|d| d.to_s(16).rjust(2, '0')}.join("\\x")}")
+    end
+  else
+    LOG.info("NO DBR RECEIVED!")
+  end
+  return nil
+end
+
+# Check if the packet we recieved was a DBR
+def check_dbr(packet) : Bool
+  !!(packet[0] =~ DBR_REGEX)
+end
+
+# Parse the DBR information into a hash
+def parse_dbr(packet) : Hash(Symbol, String)
+  data = packet[0]
+  connection = packet[1]
+
+  result = {} of Symbol => String
+  result[:camera_ip] = data[4..19].gsub("\x00", "")
+  result[:netmask] = data[20..35].gsub("\x00", "")
+  result[:gateway] = data[36..51].gsub("\x00", "")
+  result[:dns_server1] = data[52..67].gsub("\x00", "")
+  result[:dns_server2] = data[68..83].gsub("\x00", "")
+  result[:mac_address] = (data[84..88].bytes.map {|b| b.to_s(16).rjust(2, '0').upcase}).join
+  result[:http_port] = ((data.bytes[91].to_i32 << 8) + data.bytes[90].to_i32).to_s
+  result[:uid] = data[91..105]
+  LOG.info("Parsed new target camera #{result}")
+  result
+end
+</code></pre>
+
+## BCP and BPR
+We then want to send a BCP to broadcast now that the DPR has been resolved. 
+<pre><code class="crystal">
+# Destination address for the f130 broadcast packet
+BC_SOCK_DST = Socket::IPAddress.new("255.255.255.255", 32108)
+# F130 broadcast packet data
+BCP = "\xf1\x30\x00\x00"
+# Send the magic f130 broadcast packet
+def send_bcp
+  data_sock.send(BCP, BC_SOCK_DST)
+end
+</code></pre>
+
+
+We now need to handle the handshake, which consists of broadcasting a BCP and waiting for a BPS, then replying back with a BPS, and then receiving a BPA.
+
+<pre><code class="crystal">
+# F130 broadcast packet reply header
+BPR_HEADER = "\xf1\x42\x00\x14"
+
+# Fixed BPR size
+BPR_SIZE = 24
+
+# Character sent for "SYN"
+BP_SYN = 'A'
+
+# Character sent for "ACK"
+BP_ACK = 'B'
+
+# Complete the handshake using BPS
+def handle_bp_handshake
+  LOG.info("Waiting for BPS")
+  packet = @data_channel.receive #BPR size is always fixed
+  LOG.info("Recieved a packet")
+  if packet
+    data = packet[0]  # Contains the packet data
+    camera_ip = packet[1] # Connection info to connect back into the camera
+    LOG.info("Recieved a potential BPS from #{camera_ip}") 
+    # Check if out BPR is actually a BPR
+    if data[1] == BP_SYN
+      LOG.info("BPS Verified!")
+    else
+      LOG.info("BPS BAD! #{"\\x" + data.bytes.map {|d| d.to_s(16).rjust(2, '0')}.join("\\x")}")
+      return
+    end
+    # Echo back packet data back
+    LOG.info("Waiting for BPA")
+    data_sock.send(data, camera_ip)
+    # Recv the BPR ACK packet
+    packet = @data_channel.receive
+    if packet
+      LOG.info("Recieved potential BPA?")
+      data = packet[0]
+      camera_ip = packet[1]
+      if data[1] == BP_ACK
+        LOG.info("BPA Verified! Handshake successful!")
+        # set the target camera to the current connection
+        new_target camera_ip
+      else
+        LOG.info("BPA BAD! #{data.bytes.map {|d| d.to_s(16).rjust(2, '0')}.join("\\x")}")
+      end
+    end
+  end
+end
+</code></pre>
+
+## Main Phase
+Now we need to handle the ping pong packets! This is super simple now that we have finished the hard part.
+
+<pre><code class="crystal">
+# Packet that must be sent between the camera and the client at least once every 11 packets
+PING_PACKET = "\xf1\xe0\x00\x00"
+# Packet that must be sent between the camera and the client at least once every 11 packets
+PONG_PACKET = "\xf1\xe1\x00\x00"
+
+def main_phase
+  # Block here to recieve data from the data fiber
+  data = @data_channel.receive
+
+  # Classify each packet and respond
+  if data[0] == PING_PACKET
+    send_pong
+    LOG.info "Sent Pong"
+  elsif data[0] == PONG_PACKET
+    send_ping
+    LOG.info "Sent Ping"
+  # This is important! The data fiber will block, waiting for data to come through
+  # So to exit the program, we just send the unblock data to the data socket to free it
+  elsif data[0][0..3] == BPA_HEADER
+    LOG.info "Receive extra BPA"
+  elsif data[0] == UNBLOCK_FIBER_DATA
+    LOG.info "RECEIVED UNBLOCK FIBER COMMAND!"
+  else
+    LOG.info "UNKNOWN PACKET RECEIVED from #{data[1]} : #{data[0].bytes.map {|d| d.to_s(16).rjust(2, '0')}.join("\\x")}"
+  end
+end
+
+def send_ping
+  data_sock.send(PING_PACKET, target)
+end
+
+def send_pong
+  data_sock.send(PONG_PACKET, target)
+end
+</code></pre>
+
+## Testing 
+If we open up Wireshark and listen in to the connection, we should see that pings and pongs should coming through, and there should be no errors. Also the LOG should show that there were no errors as well.
+
+
+Here's the code I used to run it.
+
+<pre><code class="crystal">
+require "./client"
+
+client = Client.new
+client.run
+sleep 5
+client.close
+</code></pre>
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/1.png" style="width: 100%; height: 100%;">
+</center>
+
+In the screenshot, we can see no errors or unexpected output. We get some destination unreachable errors at the end because that's when the server shutdown.
+
+<pre><code>
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Opening ports
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Ports opened
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Sending DBP
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Sent DBP
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Changing to wait_for_dbr
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Waiting for DBR
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Parsed new target camera {:camera_ip => "192.168.11.140", :netmask => "255.255.255.0", :gateway => "192.168.11.1", :dns_server1 => "8.8.8.8", :dns_server2 => "192.168.11.1", :mac_address => "48022A0BDBB4", :http_port => "11481", :uid => "VSTB668515UZCPK"}
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : DBR RECEIVED FROM 192.168.11.140, UID: VSTB668515UZCPK
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Changing to send_bcp
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Changing to handle_bp_handshake
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Waiting for BPS
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Recieved a packet
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Recieved a potential BPS from 192.168.11.140:10560
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : BPS Verified!
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Waiting for BPA
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Recieved potential BPA?
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : BPA Verified! Handshake successful!
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Changing to main_phase
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Receive extra BPA
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Receive extra BPA
+I, [2019-03-05 06:47:36 -08:00 #12248]  INFO -- : Receive extra BPA
+I, [2019-03-05 06:47:37 -08:00 #12248]  INFO -- : Sent Pong
+I, [2019-03-05 06:47:37 -08:00 #12248]  INFO -- : Sent Pong
+I, [2019-03-05 06:47:38 -08:00 #12248]  INFO -- : Sent Pong
+I, [2019-03-05 06:47:39 -08:00 #12248]  INFO -- : Sent Pong
+I, [2019-03-05 06:47:40 -08:00 #12248]  INFO -- : Sent Pong
+I, [2019-03-05 06:47:41 -08:00 #12248]  INFO -- : Sent Pong
+I, [2019-03-05 06:47:41 -08:00 #12248]  INFO -- : Sent Pong
+I, [2019-03-05 06:47:41 -08:00 #12248]  INFO -- : Closing client
+I, [2019-03-05 06:47:41 -08:00 #12248]  INFO -- : Changing to closing
+I, [2019-03-05 06:47:41 -08:00 #12248]  INFO -- : RECEIVED UNBLOCK FIBER COMMAND!
+I, [2019-03-05 06:47:41 -08:00 #12248]  INFO -- : Changing to closed
+I, [2019-03-05 06:47:41 -08:00 #12248]  INFO -- : Closed client
+</code></pre>
+
+From the LOG we can see everything is good!
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/2.png" style="width: 100%; height: 100%;">
+</center>
+
+Doing a little packet capture analysis, we can also see we have received a new packet, 0xf1f00000. This packet seems to be sent after a certain number of pings and pongs were missed. We can assume this is some sort of disconnection packet, and we should reflect that in our code
+
+<pre><code class="crystal">
+# Packet sent when the camera has timed out from ping-pong
+DISCONNECT_PACKET= "\xf1\xf0\x00\x00"
+
+def send_disconnect
+  data_sock.send(DISCONNECT_PACKET, target)
+  LOG.info "Sent Disconnect"
+end
+</code></pre>
+
+After we send the disconnect packet, the camera will send one of it's own. To avoid a destination unreachable, we should sleep for 0.1 seconds just to let the packet be received by the data socket, even though we aren't going to do anything with the packet 
