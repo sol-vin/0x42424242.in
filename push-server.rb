@@ -26,7 +26,7 @@ def get_jekyll_pid
 end
 
 get('/github-hook') do
-  "Recieved #{$counter} posts from github since #{$time_start} \n Last Restart #{$last_restart}"
+  "Recieved #{$counter} posts from github since #{$time_start} <br> Last Restart #{$last_restart}"
 end
 
 post('/github-hook') do

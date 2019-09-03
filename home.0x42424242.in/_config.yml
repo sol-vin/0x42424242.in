@@ -22,7 +22,7 @@ title: 0x42424242.in
 email: ian@0x42424242.in
 description: A place of stuff
 baseurl: "/" # the subpath of your site, e.g. /blog
-url: "http://home.0x42424242.in" # the base hostname & protocol for your site, e.g. http://example.com
+url: "http://0x42424242.in" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: redcodefinal
 github_username: redcodefinal
 
