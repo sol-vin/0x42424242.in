@@ -51,5 +51,5 @@ build-iPhoneSimulator/
 
 /_site/
 .jekyll-metadata
-/0x42424242.in/.vscode/
+/.vscode/
 /.jekyll-cache/
