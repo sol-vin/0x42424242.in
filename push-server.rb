@@ -35,7 +35,7 @@ post('/github-hook') do
   `kill -9 #{get_jekyll_pid}`
   $server_thread.join
   puts "!!!!!! KILLED!"
-  `rm -rf home.0x42424242.in`
+  `rm -rf 0x42424242.in`
   `git clone git@specialgithuburl.com:redcodefinal/0x42424242.in.git`
   `mv -f 0x42424242.in/0x42424242.in/* 0x42424242.in/`
   start_web_server
