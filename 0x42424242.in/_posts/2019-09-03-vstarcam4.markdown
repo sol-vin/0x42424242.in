@@ -4,6 +4,7 @@ title:  "VStarCam - An Investigative Journey 4 - Sniffing Android Client"
 date:   2019-09-03 03:00:00 +0100
 categories: jekyll update
 ---
+
 I figured since a majority of people would be using the Android client, I would start my audit there. The Android app, Eye4, is available in two separate downloads, one from the [Eye4 site](http://www.eye4.so/AppDown.html), and one from the [Play store](https://play.google.com/store/apps/details?id=vstc.vscam.client&hl=en). They also have a [Windows download](http://www.eye4.so/download/), which I will audit later.
 
 The first thing I wanted to do is compare the Play store APK with the Eye4 site APK to see if there is any foul play going on, but unfortunately their personal download on the site didn't work and lead to a blank page.
@@ -38,3 +39,138 @@ So let's go through the packets.
 <center>
 <img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark1.png" style="width: 100%; height: 100%;">
 </center>
+
+The first weird thing I noticed is that the camera picked up a weird IP address for my network. It started out with the ip address 192.168.1.126, but my internal network range is 192.168.11.(100-254) meaning this camera had already come with this configuration. It also broadcasts an ARP looking for 192.168.1.1, and sends out a bunch of "Hello I'm online!" messages. Already this doesn't bode well, as it looks like they aren't using any encryption. Maybe it's a fluke, let's dive deeper.
+
+I also saw that the device also contacts a couple external hosts
+
+ * s2.vstarcam.com via UDP
+ * s3.vstarcam.com via UDP
+ * s2.eye4.cn via UDP
+ * An Amazon EC2 instance via UDP
+ * Google's public DNS, looking for baidu, wshifen.com, a.shifen.com
+ * An Alibaba cloud instance which it talks to via HTTPS.
+ * A Tencent cloud instance which it talks to via HTTP
+ * time.windows.com via NTP
+
+
+What did we learn?
+
+ * The device may not use encryption
+ * The device may leak data as a result.
+
+Let's take a look at the client's first registering of the camera, and it's first communications.
+
+## Registering the camera
+
+I loaded the app onto an android emulator and went to town. I started by registering  the camera to the client by using the "search for LAN" feature.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark2.png" style="width: 100%; height: 100%;">
+</center>
+
+First thing we notice is that when the Android client initiates the connection, it doesn't talk directly to the camera, it instead sends a UDP packet with the contents 0x44480101. We will call this the **Discovery Broadcast Packet** or **DBP** for short. he camera then replies back with a 0x44480108, and then dumps a bunch of settings information to the broadcast address. We will call this the **Discovery Broadcast Reply** or **DBR**.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark3.png" style="width: 100%; height: 100%;">
+</center>
+
+For some reason Wireshark labels this packet as an [ASTERIX](https://wiki.wireshark.org/ASTERIX) packet, which when I looked it up seems to have nothing to do with this protocol. Maybe it shares a port or something and Wireshark incorrectly labels it.
+
+When you look at the data incoming, we can start to see how this packet is laid out. The first 4 bytes are a signal to the client that it's looking for it, the followed by a space specifically carved out for an IP address, plus one 0x00 byte to delimit. The way we can tell this is because if we were to count the chars in a full IP address string (XXX.XXX.XXX.XXX which is 15 bytes, plus a 0x00 byte to delimit, making it 16 bytes.) We can see the next IP address (Which is the netmask) would be adjacent to that.
+
+The camera then sends an exact copy of the packet it just broadcast, directly to the client.
+
+After this little dance the camera and client talk directly to each other. We see it chooses the port 47499, which when converted into hex is 0xB98B. We can see in the 0x80 row of the large packet above, there is a 0xB98B in little endian. This must be how the camera negotiates what port the client will talk to after the discovery phase.
+
+When we compare this port number to our other captures, (remember, I captured the registration process, then reset the device, then did it again to see if I could notice any patterns.) we notice that the port changes with every reboot.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark5.png" style="width: 100%; height: 100%;">
+</center>
+
+Looking at the contents of the HTTP GET request shows a sad truth, the devices doesn't use any encryption for it's client communications. This super concerning because not only does this compromise security of the device, especially on wireless, in an earlier capture, we have SEEN the device actually use SSL. So they are just choosing not to?
+
+Looking at the reply brings much of the same sadness.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark6.png" style="width: 100%; height: 100%;">
+</center>
+
+Looking at the HTTP headers, we can also see that the web server the device is GoAhead webs, an embedded web server, and it also hasn't been updated since 2004. JUICY!
+
+So this is where it gets interesting.
+
+So, they already have an HTTP server to talk to the camera and serve CGI scripts, but they decided to add an extra protocol on top of that. This is where some strange UDP protocol starts to come into play.
+
+Even though the camera and client were literally just talking via HTTP, it seems to forget all about that and try again to search for a new camera. The client sends out a 0xf1300000 packet to my subnet's broadcast address (192.168.11.255). We will call this packet the **Broadcast Connection Packet** or **BCP** for short.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark7.png" style="width: 100%; height: 100%;">
+</center>
+
+The camera then replies back with a small part of its UID and the letter A. The client repeats this message back to the camera. We will call this the **Broadcast Packet SYN** or **BPS** for short.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark8.png" style="width: 100%; height: 100%;">
+</center>
+
+The camera then sends the same packet back, this time with the A changed to a B. We will call this the **Broadcast Packet ACK** or **BPA** for short
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark9.png" style="width: 100%; height: 100%;">
+</center>
+
+Finally we arrive at the main phase of the connection, here we can observe three things happening.
+
+1. The client and the camera are constantly engaging in a "ping pong" pattern message loop, where if either the client or the camera receives a 0xF1E0000 or 0xF1E10000, it replies back with the other packet. So for example, if a 0xF1E0000 is received it will reply back with 0xF1E10000. For reference 0xF1E0000 is ping, and 0xF1E1000 is pong.
+  * You can illustrate this best by using the Wireshark filter below
+    * **frame contains F1:E1:00:00 || frame contains F1:E0:00:00**
+    * <img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark10.png" style="width: 100%; height: 100%;">
+             
+2. The client sends GET requests with a special header, via UDP to the camera. The client receives replies back denoting success or failure, and the results of the query, sometimes broken up into multiple packets.
+3. The client receives video and picture data from the camera.
+  * livestream.cgi
+  * snapshot.cgi
+  * audiosteam.cgi
+Let's focus a little more on number two, since one is already solved, and three requires more extensive knowledge of video formats and decoding.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark11.png" style="width: 100%; height: 100%;">
+</center>
+
+The first 16 bytes of the packet are some sort of specialized header. We are going to want to get more samples of these to be able to learn how to forge our own. We also want to get samples to see if it might be vulnerable to replay tactics as, the header might block potential replay attacks. After that comes the GET request. Right off the bat we are hit with another oddity of the client, credential leakage, and unnecessary duplication. Not only are the communications not encrypted, so it also leaks the password on every GET interaction but, it also repeats the credentials twice just in case the first time wasn't good enough.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark12.png" style="width: 100%; height: 100%;">
+</center>
+
+A short time afterwards the camera sends a packet that looks like this. This seems to acknowledge that the command went through.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark13.png" style="width: 100%; height: 100%;">
+</center>
+
+Here we see another GET Request but this one is called "trans_cmd_string". No idea what this did at the time, but I took note of the two arguments cmd, and command.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark14.png" style="width: 100%; height: 100%;">
+</center>
+
+We see a standard reply, again, comes with a special 16 byte header, and what seems to be some sort of Javascript or some sort of configuration. This was the reply to check_users.cgi.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark15.png" style="width: 100%; height: 100%;">
+</center>
+
+This is another oddity, some times the GET request would have multiple stacked inside, starting with a 16 byte header, and padding each request with 8 bytes in the front.
+
+What did we learn?
+
+
+ * The device has some sort of HTTP service open, but the port changes for some reason, most likely with reboot.
+ * The device has some strange UDP protocol that encapsulates GET requests sent to the netcam.
+ * The device leaks username and password, as well as has confusing and strange argument duplication
+ * The device uses no encryption what-so-ever to encrypt video feeds and pictures sent by the device to the client.
+ * UDP GET requests have a special packet header
+ * The protocol is written in faulty ways, exemplified by the duplication of elements, strange request packing, and odd behavior.
