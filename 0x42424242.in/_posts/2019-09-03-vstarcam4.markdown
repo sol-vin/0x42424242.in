@@ -2,7 +2,7 @@
 layout: post
 title:  "VStarCam - An Investigative Journey 4 - Sniffing Android Client"
 date:   2019-09-03 03:00:00 +0100
-tags: vstarcam, hacking, ipc
+tags: vstarcam, hacking, ipc, wireshark
 permalink: /vstarcam/4
 ---
 
@@ -167,7 +167,6 @@ We see a standard reply, again, comes with a special 16 byte header, and what se
 This is another oddity, some times the GET request would have multiple stacked inside, starting with a 16 byte header, and padding each request with 8 bytes in the front.
 
 What did we learn?
-
 
  * The device has some sort of HTTP service open, but the port changes for some reason, most likely with reboot.
  * The device has some strange UDP protocol that encapsulates GET requests sent to the netcam.
