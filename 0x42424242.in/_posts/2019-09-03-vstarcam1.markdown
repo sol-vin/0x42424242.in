@@ -9,7 +9,7 @@ Hello everyone! Welcome to my new blog!
 
 Today I wanted to talk about a project I've been working on, and detail some of the things I found and stuff I tried. I think it'll be a good post mortem for myself to study later when I need some of these tactics again.
 
-![a cheap ipc](images/vstarcam/1.png "A Cheap IPC")
+![a cheap ipc](images/vstarcam/1.jpg "A Cheap IPC"){: style="text-align: center;"}
 
 A couple years ago, after watching a [wonderful presentation at BlackHat](https://www.youtube.com/watch?v=B8DjTcANBx0), I bought a cheap $20 unbranded netcam. The camera came with a serial number on the bottom (C7824WIP). The camera itself isn't the worst, I mean it is a low quality Chinese camera, but the features on the device were pretty interesting. It has 2 axis panning, infrared night vision, speaker, microphone, and both wireless and wired connections, which is pretty good considering it only cost me like $20. However, a couple aspects about the device really made me worry, and as a security guy, I wanted to dig deeper.
 
