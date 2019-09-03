@@ -5,9 +5,6 @@ date:   2019-09-03 04:00:00 +0100
 categories: jekyll update
 ---
 
-<pre><code class="crystal">
-</code></pre>
-
 Now that we have learned some interesting things about the communications, let's see if we can write our own suite of tools to work with the camera.
 
 Before we start, I'll be using the wonderful programming language from the boys over at Crystal. It's a very fast, statically typed language, with very zen and down to Earth syntax. The meta-programming aspect of the language is very cool!
@@ -20,8 +17,7 @@ From what we can see right now the camera and client go through different states
 class Client
   STATES = [:nothing,
             :send_dbp, 
-         <pre><code class="crystal">
-</code></pre>   :wait_for_dbr,
+            :wait_for_dbr,
             :send_bcp, 
             :handle_bp_handshake,
             :main_phase,
