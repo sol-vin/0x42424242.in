@@ -14,7 +14,7 @@ $base_directory = Dir.pwd
 def start_web_server
   puts "Starting server"
   $server_thread = Thread.new do
-    `$(cd home.0x42424242.in && bundle exec jekyll serve --host 0.0.0.0 --port 30000)`
+    `$(cd 0x42424242.in && bundle exec jekyll serve --host 0.0.0.0 --port 30000)`
   end
   puts "Started server"
 end
@@ -36,8 +36,8 @@ post('/github-hook') do
   $server_thread.join
   puts "!!!!!! KILLED!"
   `rm -rf home.0x42424242.in`
-  `git clone git@specialgithuburl.com:redcodefinal/home.0x42424242.in.git`
-  `mv -f home.0x42424242.in/home.0x42424242.in/* home.0x42424242.in/`
+  `git clone git@specialgithuburl.com:redcodefinal/0x42424242.in.git`
+  `mv -f 0x42424242.in/0x42424242.in/* 0x42424242.in/`
   start_web_server
   $last_restart = Time.now
 end
