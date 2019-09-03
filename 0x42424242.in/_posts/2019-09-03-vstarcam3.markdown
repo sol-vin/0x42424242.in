@@ -2,7 +2,7 @@
 layout: post
 title:  "VStarCam - An Investigative Journey 3 - Enumeration"
 date:   2019-09-03 02:00:00 +0100
-tags: [vstarcam, hacking, ipc]
+tags: vstarcam, hacking, ipc
 permalink: /vstarcam/3
 ---
 

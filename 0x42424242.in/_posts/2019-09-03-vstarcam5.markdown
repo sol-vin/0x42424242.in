@@ -2,7 +2,7 @@
 layout: post
 title:  "VStarCam - An Investigative Journey 5 - Writing a Client"
 date:   2019-09-03 04:00:00 +0100
-tags: [vstarcam, hacking, ipc]
+tags: vstarcam, hacking, ipc
 permalink: /vstarcam/5
 ---
 
