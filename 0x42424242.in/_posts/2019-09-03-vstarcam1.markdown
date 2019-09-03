@@ -3,6 +3,7 @@ layout: post
 title:  "VStarCam - An Investigative Journey 1 - Intro"
 date:   2019-09-03 00:00:00 +0100
 categories: jekyll update
+permalink: /vstarcam/1
 ---
 
 Hello everyone! Welcome to my new blog!

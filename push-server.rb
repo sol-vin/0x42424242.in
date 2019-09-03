@@ -14,7 +14,7 @@ $base_directory = Dir.pwd
 def start_web_server
   puts "Starting server"
   $server_thread = Thread.new do
-    `$(cd 0x42424242.in && bundle exec jekyll serve --host 0.0.0.0 --port 30000)`
+    `$(cd 0x42424242.in && JEKYLL_ENV=production bundle exec jekyll serve --host 0.0.0.0 --port 30000)`
   end
   puts "Started server"
 end
