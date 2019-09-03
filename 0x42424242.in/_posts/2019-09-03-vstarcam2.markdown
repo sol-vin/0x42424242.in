@@ -1,16 +1,38 @@
 ---
 layout: post
 title:  "VStarCam - An Investigative Journey 2 - Hardware"
-date:   2019-09-03 00:00:00 +0100
+date:   2019-09-03 01:00:00 +0100
 categories: jekyll update
 ---
 
-Hello everyone! Welcome to my new blog!
+The camera itself has some pretty useful hardware, some which could be very easily taken advantage of with the right tools.
 
-Today I wanted to talk about a project I've been working on, and detail some of the things I found and stuff I tried. I think it'll be a good post mortem for myself to study later when I need some of these tactics again.
+Just a couple simple Phillips screws and you are inside.
 
-<center>![a cheap ipc](https://4.bp.blogspot.com/-mml6ywp146s/XHr4nRpIsPI/AAAAAAAAIZ8/6AQPkDasaEwJKbeTc8bD6qsZeSnae_IXQCKgBGAs/s400/20190302_132535.jpg "A Cheap IPC")</center>
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/1.jpg" style="width: 50%; height: 50%;">
+</center>
 
-A couple years ago, after watching a [wonderful presentation at BlackHat](https://www.youtube.com/watch?v=B8DjTcANBx0), I bought a cheap $20 unbranded netcam. The camera came with a serial number on the bottom (C7824WIP). The camera itself isn't the worst, I mean it is a low quality Chinese camera, but the features on the device were pretty interesting. It has 2 axis panning, infrared night vision, speaker, microphone, and both wireless and wired connections, which is pretty good considering it only cost me like $20. However, a couple aspects about the device really made me worry, and as a security guy, I wanted to dig deeper.
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/2.jpg" style="width: 50%; height: 50%;">
+</center>
 
-I decided I'd try to do a full security audit on the device. I wanted to try it because I didn't really know anything about security cameras at the time, and I really wanted to try some of the skills I've picked up over the years. Black box testing can be really fun, and I love trying something I have little knowledge of just to see if I can succeed. I ended up learning a lot, which I would love to write down and share.
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/3.jpg" style="width: 50%; height: 50%;">
+</center>
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/4.jpg" style="width: 50%; height: 50%;">
+</center>
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/5.jpg" style="width: 50%; height: 50%;">
+</center>
+
+The processor it uses is a [HI3518](https://cdn.hackaday.io/files/19356828127104/Hi3518%20DataSheet.pdf) which apparently has already been hacked by other means. I quickly read through [this article](https://felipe.astroza.cl/hacking-hi3518-based-ip-camera/) and unfortunately failed to locate any TX/RX pins I could solder into. I was a little disappointed by this, I had a spare [USB PL2303](https://www.adafruit.com/product/954?gclid=CjwKCAiA8OjjBRB4EiwAMZe6yxta0hJQ_LydoYYRmQZOcads5iQkKwx57GYrMg-mw2HqAiDatI9WCxoCaYcQAvD_BwE) lying around for just such an occasion.
+
+When googling the HI3518 I noticed a website ispyconnect.com which seemed to be some sort of IP Camera database. I used their [website to search for my model of camera](https://www.ispyconnect.com/man.aspx?n=vstarcam&page=1) and ended up finding out the company who manufactured it, [VStarCam](http://www.vstarcam.com/). I want to point out, there is not a single marking anywhere on the device, including on the inside that would signify this to anyone. I also learned on this page that the camera can be potentially controlled by simple GET requests.
+
+On one side of the board you can see an addon board where they added the wireless radio. (It's the blue PCB with the big silver square and the grey wire)
+
+One other thing of note, the whole camera is powered by 5V DC, meaning you can power this thing off any USB port that can supply at least 1A. This is actually a pretty cool feature, because there are cheap USB battery backup options that could be used to augment the camera so it records even when the power is turned off.
