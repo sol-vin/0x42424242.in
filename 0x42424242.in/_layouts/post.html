@@ -19,7 +19,7 @@ layout: default
     {{ content }}
   </div>
 
-  <p>Tags: {{ page.tags.to_s.split(",").join(", ") }} </p>
+  <p>Tags: {{ page.tags }} </p>
 
   {%- if site.disqus.shortname -%}
     {%- include disqus_comments.html -%}
