@@ -258,3 +258,5 @@ var result="ok";
 I, [2019-03-21 07:59:10 -07:00 #10950]  INFO -- : Sent Pong
 I, [2019-03-21 07:59:11 -07:00 #10950]  INFO -- : Sent Pong
 </code></pre>
+
+[Part 11 &gt;&gt;](/vstarcam/11)

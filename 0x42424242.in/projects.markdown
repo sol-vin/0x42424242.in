@@ -2,6 +2,7 @@
 layout: page
 title: Projects
 permalink: /projects/
+nav: true
 ---
 
  * [crowbar](https://github.com/redcodefinal/crowbar) - A fuzzing suite for crystal for the automated transformation and mutation of text.

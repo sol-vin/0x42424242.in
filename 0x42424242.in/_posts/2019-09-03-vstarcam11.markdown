@@ -1,0 +1,21 @@
+---
+layout: post
+title:  "VStarCam - An Investigative Journey 11 - Failure and Bricking"
+date:   2019-09-03 10:00:00 +0100
+tags: vstarcam, hacking, ipc, crystal
+permalink: /vstarcam/11
+---
+
+Unfortunately, every journey has it's end, and this one came to an end quicker than I had hoped.
+
+Uploading my firmware, while it seemed like it worked, never increased the version number in the application. I did everything in my power to look through the updates, seeing if I missed anything. Sad thing was, the only major difference in the updates, was small header values inside the zip files themselves. Everything I checked didn't work and I was clueless on how to succeed.
+
+I ended up wanting to try something new, and I looked through my firmware files to see if I could upload a version lower than the current one, to downgrade the firmware. Unfortunately, this was where I made a huge mistake.
+
+I ended up uploading a firmware file for a different camera in the same product line, which completely bricked my camera permanently. The camera gets to the "Hello I'm Online" boot phase, then eats mad dog shit, rebooting, and starting all over. I can't find a way to upload the proper firmware.
+
+I asked around on some Discord servers but no one knew what to do, and as one user elegantly put it, "See, 2 am hacking is a big no no".
+
+This also cut this article short, I had a lot more planned with the device and I really wanted to show off some of the tools I wrote to do it.
+
+I'm probably going to order a new one and be a little more careful next time, the product line themselves are still on [Amazon](https://www.amazon.com/VSTARCAM-C7824WIP-Wireless-Multi-Stream-Monitoring/dp/B01FXSZ3YQ/ref=sr_1_1_sspa?keywords=vstarcam&qid=1553308085&s=gateway&sr=8-1-spons&psc=1), and highly rated at that, for only $35!

@@ -32,7 +32,14 @@ theme: minima
 plugins:
   - jekyll-feed
 
-google-analytics: true
+
+defaults:
+  -
+    scope:
+      path: "" # an empty string here means all files in the project
+      type: "pages"
+    values:
+      nav: false
 
 
 # Exclude from processing.

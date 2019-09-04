@@ -2,6 +2,7 @@
 layout: page
 title: Achievements
 permalink: /achievements/
+nav: true
 ---
 
 ## Certifications

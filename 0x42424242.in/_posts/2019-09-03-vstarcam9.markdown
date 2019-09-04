@@ -233,3 +233,5 @@ In short, there are a couple vulnerabilities this relies on
 * Client improperly handling sensitive data
 
 These could not have been found if it wasn't for tireless testing of the camera and familiarity of the device, and yet it is still just a stepping stone to a much larger potential exploit, auto_download.cgi.
+
+[Part 10 &gt;&gt;](/vstarcam/10)

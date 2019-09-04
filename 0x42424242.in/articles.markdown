@@ -2,6 +2,7 @@
 layout: page
 title: Articles
 permalink: /articles/
+nav: true
 ---
 
  * VStarCam - An Investigative Journey([1](/vstarcam/1), [2](/vstarcam/2), [3](/vstarcam/3), [4](/vstarcam/4), [5](/vstarcam/5), [6](/vstarcam/6), [7](/vstarcam/7))
