@@ -31,7 +31,18 @@ theme: minima
 # theme_color: red
 plugins:
   - jekyll-feed
+  - jekyll-paginate-v2
 
+permalink: /p/:year/:month/
+pagination:
+  enabled: true
+  per_page: 10
+  sort_reverse: true
+  sort_field: 'date'
+  title: ':title'
+  trail:
+    before: 1
+    after: 1
 
 defaults:
   -
@@ -40,6 +51,7 @@ defaults:
       type: "pages"
     values:
       add_to_navbar: false
+      paginate_path: '/p/:num/pagination-plugin/'
 
 
 # Exclude from processing.
