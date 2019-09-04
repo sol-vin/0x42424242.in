@@ -27,7 +27,6 @@ Using the "Find in Path" feature in Android Studio let's us search the project f
 
 If we actually look at some of them we can see some code that provides us with more info.
 
-<div class="container">
 <pre><code class="smali">
 new-instance v1, Ljava/lang/StringBuilder;
 
@@ -53,7 +52,7 @@ move-result-object v1
 
 const-string v2, "\&sensorid1="
 </code></pre>
-</div>
+
 
 I don't need to really know smali to know what I'm seeing here. We have a java class, StringBuilder, building a CGI string to send out. By looking at these segments of code by the CGI strings we have found, we can also mine more information on what arguments some of these commands use.
 
@@ -125,6 +124,7 @@ mount -t tmpfs none /tmp -o size=3m
 /system/system/bin/updata
 /system/system/bin/wifidaemon &
 /system/system/bin/upgrade \&
+
 </pre></code>
 
 When I saw this I thought, "Oh man, someone left telnetd on and had to turn it off in a later update."
