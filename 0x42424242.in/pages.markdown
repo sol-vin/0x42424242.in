@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Projects
+title: Pages
 permalink: /p/
 add_to_navbar: false
 pagination:

@@ -51,6 +51,7 @@ defaults:
       type: "pages"
     values:
       add_to_navbar: false
+      paginate_path: '/p/:num/pagination-plugin/'
 
 
 # Exclude from processing.
