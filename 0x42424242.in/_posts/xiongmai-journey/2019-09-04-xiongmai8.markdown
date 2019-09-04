@@ -57,3 +57,5 @@ Looking up this string provides an [interesting article](https://www.zdnet.com/a
 </center>
 
 So now we know for certain that the camera is actually a Xiongmai product, not Besder.
+
+[Part 9 &gt;&gt;](/xiongmai/9)

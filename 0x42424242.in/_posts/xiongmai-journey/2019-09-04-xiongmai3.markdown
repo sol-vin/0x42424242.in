@@ -115,3 +115,5 @@ Success! Ret = 100
 </center>
 
 Interesting thing I noticed, when authentication failed, it reported it was a DVR, where when it succeeded it reports its an IPC. So far though, there is little information on what controls the SessionID field. We are probably going to need to figure this out.
+
+[Part 4 &gt;&gt;](/xiongmai/4)

@@ -13,3 +13,5 @@ After my first article, [Brian Cardiff](https://github.com/bcardiff) from [Manas
 If you would like to participate, you can buy the camera from [Amazon](https://www.amazon.com/gp/product/B07NSWBJ6J/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1), and follow along, just be sure to follow these [guidelines](https://www.michaelhorowitz.com/Defending.against.Xiongmai_Oct2018.php), as the camera itself is basically a bot in a botnet.
 
 All source code can be found on Github at [redcodefinal/xiongmai-investigational-journey](https://github.com/redcodefinal/xiongmai-investigational-journey)
+
+[Part 2 &gt;&gt;](/xiongmai/2)

@@ -64,3 +64,5 @@ Already Radamsa has helped us find a new and exciting vulnerability.
 ## Final notes on fuzzing
 
 We can say for certain that there are some oddities and inconsistencies about how this protocol works, which tends to be good for the red team. The stranger the protocol the more likely someone made a mistake somewhere along the way. There seems to be a lot of potential for that since the protocol acts so erratically. 
+
+[Part 8 &gt;&gt;](/xiongmai/8)

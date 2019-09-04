@@ -95,3 +95,5 @@ Here is some close up looks at some of the chips and markings on the PCB.
 </center>
 
 Honestly I'm no hardware expert, but I did recently pick up a FT232H I've been wanting to learn with. I'd really like to be able to pull the firmware directly off the device, right from the Winbond chip. Also, I'd love to try and unbrick my VStarCam, and maybe even figure out how to write my own total firmware conversion!
+
+[Part 3 &gt;&gt;](/xiongmai/3)

@@ -124,3 +124,5 @@ end
 This will run for a while, eventually producing results, and while the results are accurate, it's too slow! It can take up to 24 hours to complete a single scan of the magic field 0x3 to 0x8, especially because camera turns off and doesn't turn back on for minutes, as well as many other system breaking bugs.
 
 Luckily I had a couple ideas to make it faster.
+
+[Part 6 &gt;&gt;](/xiongmai/6)

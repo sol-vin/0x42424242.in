@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Xiongmai - An Investigative Journey 9 - Denial of Service"
+title:  "Xiongmai - An Investigative Journey 9 - Denial of Service Pt. 1"
 date:   2019-09-04 08:00:00 +0100
 tags: xiongmai, hacking, ipc
 permalink: /xiongmai/9
@@ -50,3 +50,39 @@ The ReceiveEOF proves that the socket closed and the server went down.
 The camera will go down for about 2 minutes, while still responding to pings for a short period of time while it reboots. The client cannot connect during this reboot period.
 
 <iframe width="616" height="380" src="https://www.youtube.com/embed/SnyPJtDDMFQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+
+While we do have an already working DoS exploit, there is a lot to be learned in further potential fuzzing. Working with Radamsa was a snap, and helped me find two new vulnerabilities, the "Message Quotes" and "Options Wrong Type" vulnerabilities.
+
+## Message Quotes DoS
+This one takes advantage of some error made in JSON processing, when given a message that consists entirely of two quotes, the camera crashes. Not really too much to say about it. Like the size int problem, this one works on all commands.
+## Options Wrong Type DoS
+
+This takes advantage of another issue in the JSON processing the camera's server does. This one only works on specific commands; OPTalk, OPMonitor, and OPRecordSnap. When these commands are sent, the have the option of including a hash of options under the root as the same name of command.
+
+Example:
+<pre><code class="json">
+{
+  "Name": "OPMonitor",
+  "OPMonitor":  {
+    "Action": "Claim",
+    "Action1":  "Start",
+    "Parameter":  {
+      "Channel":  0,
+      "CombinMode": "NONE",
+      "StreamType": "Main",
+      "TransMode":  "TCP"
+    }
+  },
+  "SessionID":  "0x0000000007"
+}
+</code></pre>
+
+Under the "OPMonitor" key, there is a hash of options. The server always expects the value under this key to always be a hash. However, weak checking, poor testing, and bad error handling allows us to crash the camera by swapping the hash with an non-nested type, like a string or a number. For example, the following string crashes the camera.
+
+<pre><code class="json">
+{
+  "Name": "OPMonitor",
+  "OPMonitor": 0,
+  "SessionID":  "0x0000000007"
+}
+</code></pre>
