@@ -51,6 +51,7 @@ invoke-virtual {v1, p3}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBu
 move-result-object v1
 
 const-string v2, "&sensorid1="
+
 </code></pre>
 
 I don't need to really know smali to know what I'm seeing here. We have a java class, StringBuilder, building a CGI string to send out. By looking at these segments of code by the CGI strings we have found, we can also mine more information on what arguments some of these commands use.
