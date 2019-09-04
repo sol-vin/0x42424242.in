@@ -27,7 +27,7 @@ Using the "Find in Path" feature in Android Studio let's us search the project f
 
 If we actually look at some of them we can see some code that provides us with more info.
 
-<pre><code>
+<pre><code class="smali">
 new-instance v1, Ljava/lang/StringBuilder;
 
 invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
