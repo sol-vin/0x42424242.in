@@ -1,0 +1,117 @@
+---
+layout: post
+title:  "Xiongmai - An Investigative Journey 3 - Software Overview and Investigation"
+date:   2019-09-04 02:00:00 +0100
+tags: xiongmai, hacking, ipc
+permalink: /xiongmai/3
+---
+I plan to do the same thing I did with the VStarCam, capture packets, read through them, get a basic idea for the connection process, and start writing my very own client! First things first, we want to get an idea of a couple things,
+
+* Get a list of all port numbers, source and destination, and who communicated using them.
+* Study the basic packet structure and figure out the basic formatting.
+* Look at the client software for clues into the inner workings.
+
+## Sniffing
+
+Same as before, the main idea is to login with the app, and then immediately disconnect, so it's easier to understand the login process. Just for information, we'll do this multiple times to see if there are any important variables in the connection process we may need to track.
+
+This time the app is the [XMEye](https://play.google.com/store/apps/details?id=com.mobile.myeye&hl=en_US) app, which operates very similarly to the Eye4 app that the VStarCam uses. The app, once again, has a stupid cloud login, which means the camera has that DDNS connectivity built in again. I'm really glad that I wrote rules in my network to prevent the camera from reaching the internet. 
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/1.png" style="width: 100%; height: 100%;">
+</center>
+
+Once again, broadcast is being used in a poor way, allowing potential attackers to find ALL cameras on a network with one simple magic packet. We are also seeing some weird UDP protocol again.
+
+Taking a look at the first packet, we are greeted with a 20 byte sequence, a single byte 0xFF, padded by thirteen 0x00, then 0xFA05, and lastly four 0x00. We will call this the DBP (Discovery Broadcast Packet).
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/2.png" style="width: 100%; height: 100%;">
+</center>
+
+Looking ahead, there is a similar marking to the 0xFA05, a 0xFB05. My guess would be that 0xFA05 is the client, and 0xFB05 is the camera. There is also a treasure trove of data sent to broadcast. From this packet we can see the format of choice is JSON. This will be a lot easier to work with that the custom protocol, because it requires less de-serialization work, the hard part is written for us! We will call this the DBR (Discovery Broadcast Reply)
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/3.png" style="width: 100%; height: 100%;">
+</center>
+
+It does this little dance to share the UDPPort and the TCPPort, both of which are most likely hard-coded in, so there isn't much of a reason for it. We also know that "Ret : 100" means the command succeeded!
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/4.png" style="width: 100%; height: 100%;">
+</center>
+
+Looking at the header, we can see the data contains a 0x3E, which just happens to be the exact size of the data, without the 20 byte header. When googling the name "GetSafetyAbility", I couldn't find anything, not on GitHub, or any other search engine (I even tried Baidu). The protocol also switched off from UDP to TCP.
+
+Going through the rest of the packets we can see we only really care about the data part of the TCP flow, not the SYN or ACK, so I set up  a simple Wireshark filter to filter the results into something a little more orderly. We only want TCP PSH packets.
+ * tcp.flags.push == 1
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/5.png" style="width: 100%; height: 100%;">
+</center>
+
+When plugging some of the strings from this packet into google, I ended up finding a couple pieces of interesting information.
+
+ * [Pastebin](https://pastebin.com/D8u5jXNH)
+ * [Gist](https://gist.github.com/knight-of-ni/26be98747cef99cd4fe7)
+ * [Github](https://github.com/charmyin/IPCTimeLapse/blob/master/videoCapture.c)
+
+ In the PasteBin, there is a log of some sort. Looking at some of the strings inside provides some useful information. First of all, this is some sort of Android client, maybe even the one we have installed, listing out the JSON messages it sends and a bunch of parameters. Looking further into it, we may be able to learn more about how the headers are built. There are some strings that specifically look like they might be something related to the header.
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/14.png" style="width: 100%; height: 100%;">
+</center>
+
+The Gist is more of the same, although simply sent/received packets, nothing too interesting, but the guy did leave his hashed password in the file, maybe it can be brute forced back to plaintext.
+
+The Github has the most interesting information, which describes exactly how the headers are made. The important function trace we care about starts in sendSocketData, which contains the function call we really care about getSendDataInBinary. This takes the header data, and puts it into a 20 byte buffer. Looking at the function itself explains it all.
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/6.png" style="width: 100%; height: 100%;">
+</center>
+
+Looking at an example of it's usage in the code shows that all bytes are actually ordered in Little Endian.
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/7.png" style="width: 100%; height: 100%;">
+</center>
+
+We now know that secondInt is actually the SessionID! However, looking fourthInt, we still dont know what it is, but the value is hardcoded to every single command, so we can guess that whatever it is, it's tied to the command name or something.
+
+The camera then sends the replies to the clients previous commands.
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/8.png" style="width: 100%; height: 100%;">
+</center>
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/9.png" style="width: 100%; height: 100%;">
+</center>
+
+Now we finally start to get to the meat. The client attempts to login to the device, but I have changed the default password to "password", whatever this password is, it's most likely the blank password. The reply afterwards should be a "failure", we can see that the next login attempt has a different password, and actually succeeded.
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/10.png" style="width: 100%; height: 100%;">
+<br>
+Blank Password
+</center>
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/11.png" style="width: 100%; height: 100%;">
+<br>
+Failure! Ret = 203
+</center>
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/12.png" style="width: 100%; height: 100%;">
+<br>
+Correct Password
+</center>
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/13.png" style="width: 100%; height: 100%;">
+<br>
+Success! Ret = 100
+</center>
+
+Interesting thing I noticed, when authentication failed, it reported it was a DVR, where when it succeeded it reports its an IPC. So far though, there is little information on what controls the SessionID field. We are probably going to need to figure this out.

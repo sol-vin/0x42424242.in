@@ -1,0 +1,15 @@
+---
+layout: post
+title:  "Xiongmai - An Investigative Journey 1 - Intro"
+date:   2019-09-04 00:00:00 +0100
+tags: xiongmai, hacking, ipc
+permalink: /xiongmai/1
+---
+
+ello everyone, and welcome to my investigative journey into the Besder (actually Xiongmai) IP20H1 network camera! Last time, ([VStarCam Investigational Journey](/vstarcam)), I covered the VStarCam C7824WIP, a fully featured network camera with some BIG custom protocol flaws. Using knowledge gained from investigation, I was able to write an "anti-client" which could pilfer the password to the camera from a client, reflect the credentials at the camera, then install our own firmware which unfortunately bricked the device. I bought a brand new device and I'm ready to try again.
+
+After my first article, [Brian Cardiff](https://github.com/bcardiff) from [Manas](https://manas.tech/), the creators of the [Crystal](https://crystal-lang.org/) language, reached out to me to say that they enjoyed the article and they wanted to give me a gift card to Amazon to pick out a new camera! And that's exactly what I did. Big thank you to the Crystal team for doing this, they are some wonderful people, and I'm really glad to be a part of their community!
+
+If you would like to participate, you can buy the camera from [Amazon](https://www.amazon.com/gp/product/B07NSWBJ6J/ref=ppx_yo_dt_b_asin_title_o00_s00?ie=UTF8&psc=1), and follow along, just be sure to follow these [guidelines](https://www.michaelhorowitz.com/Defending.against.Xiongmai_Oct2018.php), as the camera itself is basically a bot in a botnet.
+
+All source code can be found on Github at [redcodefinal/xiongmai-investigational-journey](https://github.com/redcodefinal/xiongmai-investigational-journey)
