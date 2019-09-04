@@ -30,7 +30,7 @@ If we actually look at some of them we can see some code that provides us with m
 <pre><code class="smali">
 new-instance v1, Ljava/lang/StringBuilder;
 
-invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+invoke-direct {v1}, Ljava/lang/StringBuilder;-&gt;&lt;init&gt;()V
 
 const-string/jumbo v2, "set_sensorname.cgi?&sensorid="
 invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
