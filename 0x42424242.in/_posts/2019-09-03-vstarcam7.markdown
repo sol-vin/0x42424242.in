@@ -31,7 +31,7 @@ If we actually look at some of them we can see some code that provides us with m
 <pre><code class="smali">
 new-instance v1, Ljava/lang/StringBuilder;
 
-invoke-direct {v1}, Ljava/lang/StringBuilder;->\<init\>()V
+invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
 
 const-string/jumbo v2, "set_sensorname.cgi?&sensorid="
 invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -52,7 +52,7 @@ invoke-virtual {v1, p3}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBu
 move-result-object v1
 
 const-string v2, "&sensorid1="
-
+</code></pre>
 </div>
 
 I don't need to really know smali to know what I'm seeing here. We have a java class, StringBuilder, building a CGI string to send out. By looking at these segments of code by the CGI strings we have found, we can also mine more information on what arguments some of these commands use.
