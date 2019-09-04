@@ -264,7 +264,7 @@ client.close
 </code></pre>
 
 This code will not only test if we can forge the first packet, but also the subsequent ones. Checking the Wireshark with a special filter shows the success
- * frame contains GET || frame contains F1:D1:00  || frame contains F1:D0:00
+ * `frame contains GET || frame contains F1:D1:00  || frame contains F1:D0:00`
 
 <center>
 <img src="{{ site.baseimg }}/images/vstarcam/wireshark/7.png" style="width: 100%; height: 100%;">
