@@ -126,7 +126,7 @@ Finally we arrive at the main phase of the connection, here we can observe three
 
 1. The client and the camera are constantly engaging in a "ping pong" pattern message loop, where if either the client or the camera receives a 0xF1E0000 or 0xF1E10000, it replies back with the other packet. So for example, if a 0xF1E0000 is received it will reply back with 0xF1E10000. For reference 0xF1E0000 is ping, and 0xF1E1000 is pong.
   * You can illustrate this best by using the Wireshark filter below
-    * frame contains F1:E1:00:00 \|\| frame contains F1:E0:00:00
+    * `frame contains F1:E1:00:00 || frame contains F1:E0:00:00`
     * <img src="{{ site.baseimg }}/images/vstarcam/wireshark/wireshark10.png" style="width: 100%; height: 100%;">
              
 2. The client sends GET requests with a special header, via UDP to the camera. The client receives replies back denoting success or failure, and the results of the query, sometimes broken up into multiple packets.
