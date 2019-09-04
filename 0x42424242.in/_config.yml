@@ -33,16 +33,17 @@ plugins:
   - jekyll-feed
   - jekyll-paginate-v2
 
-permalink: /p/:year/:month/
+permalink: /:year/:month/:title
 pagination:
   enabled: true
   per_page: 10
-  sort_reverse: true
+  offset: 2
+  permalink: '/p/:num/'
+  title: ':title - page :num of :max'
+  limit: 0
   sort_field: 'date'
-  title: ':title'
-  trail:
-    before: 1
-    after: 1
+  sort_reverse: true
+
 
 defaults:
   -
@@ -51,7 +52,6 @@ defaults:
       type: "pages"
     values:
       add_to_navbar: false
-      paginate_path: '/p/:num/pagination-plugin/'
 
 
 # Exclude from processing.
