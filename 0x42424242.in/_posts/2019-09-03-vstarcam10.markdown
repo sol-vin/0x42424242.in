@@ -73,7 +73,7 @@ This first part is a sentinel value, and if you skip to the bottom, you can see 
  000fd590:  e2 00 00 00 00 00 2e 78  7a 67 6e 6f 68 2e 79 62  .......xzgnoh.yb
  000fd5a0:  2e 6d 6f 63 2e 61 72 65  6d 61 63 2d 74 63 65 6a  .moc.aremac-tcej
  000fd5b0:  62 6f 2e 77 77 77 -- --  -- -- -- -- -- -- -- --  bo.www----------
-</pre></code>
+</code></pre>
 
 If we go to the next "field", we can see that there is a directory followed by a bunch of 0x00, which we can guess is the full field width, 0x40.
 
