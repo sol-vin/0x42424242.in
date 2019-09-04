@@ -1,0 +1,59 @@
+---
+layout: post
+title:  "Xiongmai - An Investigative Journey 8 - Brute Force"
+date:   2019-09-04 07:00:00 +0100
+tags: xiongmai, hacking, ipc
+permalink: /xiongmai/8
+---
+Looking at the hashing format, we know it's going to have collisions. To find out the plain-text password to the backdoor user account, we are going to need to take some time and brute force the hash to find the plain text password. I just want to point out, this step is mostly unnecessary, since the hash is as good as the plain text password when logging into the camera. Regardless, it would still be a good idea to crack it, just in case.
+
+<pre><code class="crystal">
+require "./dahua_hash"
+
+module Brute
+  def self.run(hash : String, start = "a") : String
+    current = start
+    counter = 0
+    success = false
+    
+    start_time = Time.now
+    until success
+      if Dahua.digest(current) == hash
+        puts "SUCCESS!!!"
+        success = true
+        break
+      end
+      
+      counter += 1
+      current = current.succ
+      
+      if counter % 1_000_000 == 0
+        puts " @ #{current} : #{Time.now - start_time}"
+      elsif counter % 10_000 == 0
+        print '.'
+      end
+    end
+    end_time = Time.now
+    
+    puts "Time: #{end_time - start_time}"
+    puts "Result: #{current} : #{Dahua.digest(current)}"
+    current
+  end
+end
+</code></pre>
+
+We know the details of the "user" account, so all we need to do is plug it in and BAM!
+
+<pre><code class="crystal">
+Brute.run("OxhlwSG8")
+</code></pre>
+
+We end up getting back the string "tluafed", or "default" backwards, after about 16 or so hours.
+
+Looking up this string provides an [interesting article](https://www.zdnet.com/article/over-nine-million-cameras-and-dvrs-open-to-apts-botnet-herders-and-voyeurs/) which describes a method of testing to see if the camera is a Xiongmai, by going to a specific htm page, err.htm.
+
+<center>
+<img src="{{ site.baseimg }}/images/xiongmai/wireshark/err.png" style="width: 100%; height: 100%;">
+</center>
+
+So now we know for certain that the camera is actually a Xiongmai product, not Besder.

