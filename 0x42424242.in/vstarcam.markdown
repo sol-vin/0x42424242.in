@@ -2,7 +2,7 @@
 layout: page
 title: "VStarCam - Investigational Journey"
 permalink: /vstarcam/
-nav: false
+add_to_navbar: false
 ---
 
 YA HERE BOI

@@ -2,7 +2,7 @@
 layout: page
 title: About
 permalink: /about/
-nav: true
+add_to_navbar: true
 ---
 
 I'm Ian and I write software. I also hack software, sometimes with software I wrote.

@@ -39,7 +39,7 @@ defaults:
       path: "" # an empty string here means all files in the project
       type: "pages"
     values:
-      nav: false
+      add_to_navbar: false
 
 
 # Exclude from processing.
