@@ -124,7 +124,7 @@ mount -t tmpfs none /tmp -o size=3m
 /system/system/bin/brushFlash
 /system/system/bin/updata
 /system/system/bin/wifidaemon &
-/system/system/bin/upgrade &
+/system/system/bin/upgrade \&
 </pre></code>
 
 When I saw this I thought, "Oh man, someone left telnetd on and had to turn it off in a later update."
