@@ -9,11 +9,11 @@ permalink: /xiongmai/2
 This time I got a camera that had less features than the VStarCam, from a  company called Besder. The exact model is IP20H1.
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/1.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/1.jpg" style="width: 100%; height: 100%;">
 </center>
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/2.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/2.jpg" style="width: 100%; height: 100%;">
 </center>
 
 Just looking at the Amazon page, the advertisement promises a couple things.
@@ -29,13 +29,13 @@ It doesn't have any movement, speaker, or microphone capabilities.
 Opening up the device we can get a clearer look inside.
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/3.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/3.jpg" style="width: 100%; height: 100%;">
 </center>
 
 The camera head is on an up-down swivel, while the entire base rotates around. Kind of neat. Some screws and we can detach the camera head from the body.
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/4.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/4.jpg" style="width: 100%; height: 100%;">
 </center>
 
 Right away we can see 4 wire connectors. The longest one is the Ethernet cable in. As for the red and black one, that is connected to the IR LED to power. The red and blue one I'm guessing would be to help force on the IR, and the single red wire is the day light sensor, pure guess though on which are which.
@@ -43,7 +43,7 @@ Right away we can see 4 wire connectors. The longest one is the Ethernet cable i
 An interesting note, the single red wire jumper is actually wedged into a three pin socket, you can see what I'm talking about in this picture.
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/5.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/5.jpg" style="width: 100%; height: 100%;">
 </center>
 
 There is also a free jumper, who knows what it might do. My guess is a potential UART, or motor control but honestly I don't know.
@@ -51,7 +51,7 @@ There is also a free jumper, who knows what it might do. My guess is a potential
 The processor, yet again, is a HI3516, a common IP camera SoC.
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/6.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/6.jpg" style="width: 100%; height: 100%;">
 </center>
 
 Looking around the board we can also see a number of interesting ICs, using google we can find out what they do.
@@ -59,39 +59,39 @@ Looking around the board we can also see a number of interesting ICs, using goog
 Here is some close up looks at some of the chips and markings on the PCB.
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/7.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/7.jpg" style="width: 100%; height: 100%;">
 </center>
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/8.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/8.jpg" style="width: 100%; height: 100%;">
 </center>
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/9.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/9.jpg" style="width: 100%; height: 100%;">
 </center>
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/10.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/10.jpg" style="width: 100%; height: 100%;">
 </center>
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/11.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/11.jpg" style="width: 100%; height: 100%;">
 </center>
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/12.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/12.jpg" style="width: 100%; height: 100%;">
 </center>
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/13.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/13.jpg" style="width: 100%; height: 100%;">
 </center>
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/14.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/14.jpg" style="width: 100%; height: 100%;">
 </center>
 
 <center>
-<img src="{{ site.baseimg }}/images/xiongmai/15.png" style="width: 100%; height: 100%;">
+<img src="{{ site.baseimg }}/images/xiongmai/15.jpg" style="width: 100%; height: 100%;">
 </center>
 
 Honestly I'm no hardware expert, but I did recently pick up a FT232H I've been wanting to learn with. I'd really like to be able to pull the firmware directly off the device, right from the Winbond chip. Also, I'd love to try and unbrick my VStarCam, and maybe even figure out how to write my own total firmware conversion!
