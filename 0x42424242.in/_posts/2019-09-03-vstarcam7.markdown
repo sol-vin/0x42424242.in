@@ -1,0 +1,147 @@
+---
+layout: post
+title:  "VStarCam - An Investigative Journey 7 - Getting More Information"
+date:   2019-09-03 04:00:00 +0100
+tags: vstarcam, hacking, ipc, crystal
+permalink: /vstarcam/7
+---
+
+Now we are at the point where everything is coming together and now we need to know WHAT we can do with the device.
+
+## Getting a list of CGI
+
+At this point, we have a working client (for the most part), now we need commands to run! We are going to explore a variety of ways we can get more info on the commands that are available to us.
+
+### Wireshark and Testing Methodology
+
+We can use Wireshark as a sniffer to get the request strings we want. We just open the APP as usual, and try each and every single option, button, etc. Try to do anything that might generate a GET. Then filter the GET packets out in Wireshark.
+
+### Decompiling APK
+We can use Android Studio's "Debug and Profile APK" feature to disassemble the APK into Smali. I didn't know anything about Smali before messing around with this project, so pardon me if I get things wrong, I never really learned the language, I just used intuition on most of this.
+
+Using the "Find in Path" feature in Android Studio let's us search the project for any mention of .cgi. While some results aren't going to be exactly as we want, we will get to see a majority of the surface level functions we can use.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/8.png" style="width: 100%; height: 100%;">
+</center>
+
+If we actually look at some of them we can see some code that provides us with more info.
+
+<pre><code class="smali">
+new-instance v1, Ljava/lang/StringBuilder;
+
+invoke-direct {v1}, Ljava/lang/StringBuilder;-><init>()V
+
+const-string/jumbo v2, "set_sensorname.cgi?&sensorid="
+invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+move-result-object v1
+
+invoke-virtual {v1, p2}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+move-result-object v1
+
+const-string v2, "&sensorid0="
+invoke-virtual {v1, v2}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
+
+move-result-object v1
+
+invoke-virtual {v1, p3}, Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;
+
+move-result-object v1
+
+const-string v2, "&sensorid1="
+</code></pre>
+
+I don't need to really know smali to know what I'm seeing here. We have a java class, StringBuilder, building a CGI string to send out. By looking at these segments of code by the CGI strings we have found, we can also mine more information on what arguments some of these commands use.
+
+### Decomipling SO
+
+I noticed after a while an interesting pattern I kept seeing after it made the CGI string, it would call a method:
+<pre><code>
+vstc2/nativecaller/NativeCaller;->TransferMessage
+</code></pre>
+
+However, no amount of googling lead me closer to finding out what it did, and worse, I couldn't find the method ANYWHERE in the smali. I must have searched for hours.
+
+Finally when I did find it, it was just a stub method, there was no code to it at all! Then after a bit more googling I learned that methods gained from Shared Object files won't show up in a Smali decompile, since it's only decompiling the Java, not the assembly. When looking through the shared objects, I found one called libvstc2_jni.so, which seemed to be what I was looking for. I tried decompiling it on Linux but I couldn't find a good tool to do it with and ended up using onlinedisassembler which worked pretty well as I mainly just used it for it's string search, rather than wanting to pour over ARM ASM.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/9.png" style="width: 100%; height: 100%;">
+</center>
+
+### Decompiling Firmware
+I'd also like to decompile the firmware on the camera, but unfortunately, I couldn't find a good method to pull a copy off the device.  I was, however, able to get a hold of an update, (Finally I've been waiting for months for a firmware update I could listen into.), which doesn't contain any CGI info, but does contain some other interesting stuff I'll detail later.
+
+### Googling
+
+Ripping through Shared Objects, Smali, and Wireshark captures is fun and all, but sometimes you just want real human English answers. I spent a lot of time googling things during this writeup, as well as when I first sat down with the device months ago.
+
+Finally after getting so far, I wanted to see if there was ANY information out there about this API, so I set out with a couple choice google searches, and an understanding of what "down the rabbit hole" truly means.
+
+I started with googling "vstarcam api", which lead me to an interesting [SDK page](http://www.vstarcam.com/SDK-Download.html). Once there I quickly located a CGI manual, let's open it up and take a look inside.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/10.png" style="width: 100%; height: 100%;">
+</center>
+
+Oh no, the manual is in Chinese, but at least we are getting closer.
+
+I tried "vstarcam sdk" and ended up finding an [english manual](http://corz.org/windows/software/oodlecam/files/IP%20Camera%20CGI%20Manual%20[from%20Tenvis%203815%20SDK].pdf). I also noticed this [forum post](https://community.home-assistant.io/t/c7824wip-ptz-camera/38597), which also talked about the poor security of the VStarCam firmware.
+
+In this post he talks about some juicy things, one of which I discovered in an update I went through.
+
+There was also [another post](https://pierrekim.github.io/blog/2017-03-08-camera-goahead-0day.html) about the camera, although it mentions it by a different name, unsurprisingly, the picture even is the same one I have. This guy went deep into the nitty gitty on some of the exploits, some of which I'd like to try myself now that I know about them.
+
+Also, after referencing the manual, I did not notice any commands I didn't find already, or see any that weren't listed.
+
+## Extras
+
+After studying this thing for months, I FINALLY received a firmware update. I wasted no time sniffing the connection and learning some cool stuff.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/11.png" style="width: 100%; height: 100%;">
+</center>
+
+When it started the download, it used the auto_download_file.cgi script. With it we can supply a server, and a file to download. Potentially abusable! We will definitely cover this in a later part.
+
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/wireshark/12.png" style="width: 100%; height: 100%;">
+</center>
+
+I immediately grabbed a copy of the file and went to town in binwalk, extracting all files so I could take a look. One of the first files I noticed, ipcam.sh, had an interesting thing inside it. This is the file verbatim.
+
+<pre><code class="shell">
+export PATH=/system/system/bin:$PATH
+#telnetd
+export LD_LIBRARY_PATH=/system/system/lib:/mnt/lib:$LD_LIBRARY_PATH
+mount -t tmpfs none /tmp -o size=3m
+
+/system/system/bin/brushFlash
+/system/system/bin/updata
+/system/system/bin/wifidaemon &
+/system/system/bin/upgrade &
+</pre></code>
+
+When I saw this I thought, "Oh man, someone left telnetd on and had to turn it off in a later update."
+
+After downloading previous updates from caches online, I found that this was indeed true. It is also backed up by [this article](https://pierrekim.github.io/blog/2017-03-08-camera-goahead-0day.html), specifically in the section "CVE-2017-8224 - Backdoor account".
+
+I thought that was super funny.
+
+Another interesting find was some of the developer names were accidentally left in some binaries, by way of a home directory listing.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/dengyi.png" style="width: 100%; height: 100%;">
+</center>
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/laishao.png" style="width: 100%; height: 100%;">
+</center>
+
+I also found another interesting tidbit, the password they use to zip is hardcoded into binaries added in some of the updates.
+
+<center>
+<img src="{{ site.baseimg }}/images/vstarcam/PASSWORD.png" style="width: 100%; height: 100%;">
+</center>
