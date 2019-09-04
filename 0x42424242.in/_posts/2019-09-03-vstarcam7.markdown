@@ -58,6 +58,7 @@ I don't need to really know smali to know what I'm seeing here. We have a java c
 ### Decomipling SO
 
 I noticed after a while an interesting pattern I kept seeing after it made the CGI string, it would call a method:
+
 <pre><code>
 vstc2/nativecaller/NativeCaller;->TransferMessage
 </code></pre>
