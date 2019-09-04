@@ -39,7 +39,7 @@ pagination:
   per_page: 10
   offset: 2
   permalink: '/p/:num/'
-  title: ':title - page :num of :max'
+  title: ':title - page :num'
   limit: 0
   sort_field: 'date'
   sort_reverse: true
