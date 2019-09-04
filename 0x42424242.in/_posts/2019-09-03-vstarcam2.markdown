@@ -37,3 +37,5 @@ When googling the HI3518 I noticed a website ispyconnect.com which seemed to be 
 On one side of the board you can see an addon board where they added the wireless radio. (It's the blue PCB with the big silver square and the grey wire)
 
 One other thing of note, the whole camera is powered by 5V DC, meaning you can power this thing off any USB port that can supply at least 1A. This is actually a pretty cool feature, because there are cheap USB battery backup options that could be used to augment the camera so it records even when the power is turned off.
+
+[Part 3 &gt;&gt;](/vstarcam/3)

@@ -37,3 +37,5 @@ Just add this to your config.
  * monitor session 1 destination interface Gi4/0/23
 
 You can then plug ther USB dongle into the switch on port 23, and all port 13 traffic will be routed there as well!
+
+[Part 4 &gt;&gt;](/vstarcam/4)

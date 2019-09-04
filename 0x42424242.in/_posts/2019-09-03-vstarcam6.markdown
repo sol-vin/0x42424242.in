@@ -269,3 +269,5 @@ This code will not only test if we can forge the first packet, but also the subs
 <center>
 <img src="{{ site.baseimg }}/images/vstarcam/wireshark/7.png" style="width: 100%; height: 100%;">
 </center>
+
+[Part 7 &gt;&gt;](/vstarcam/7)

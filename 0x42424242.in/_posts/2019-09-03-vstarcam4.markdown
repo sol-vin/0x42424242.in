@@ -174,3 +174,5 @@ What did we learn?
  * The device uses no encryption what-so-ever to encrypt video feeds and pictures sent by the device to the client.
  * UDP GET requests have a special packet header
  * The protocol is written in faulty ways, exemplified by the duplication of elements, strange request packing, and odd behavior.
+
+ [Part 5 &gt;&gt;](/vstarcam/5)

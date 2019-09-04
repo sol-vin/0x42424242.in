@@ -147,3 +147,5 @@ I also found another interesting tidbit, the password they use to zip is hardcod
 <center>
 <img src="{{ site.baseimg }}/images/vstarcam/PASSWORD.png" style="width: 100%; height: 100%;">
 </center>
+
+[Part 8 &gt;&gt;](/vstarcam/8)

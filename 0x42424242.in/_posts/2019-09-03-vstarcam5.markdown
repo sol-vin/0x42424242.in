@@ -460,3 +460,5 @@ end
 </code></pre>
 
 After we send the disconnect packet, the camera will send one of it's own. To avoid a destination unreachable, we should sleep for 0.1 seconds just to let the packet be received by the data socket, even though we aren't going to do anything with the packet 
+
+[Part 6 &gt;&gt;](/vstarcam/6)
