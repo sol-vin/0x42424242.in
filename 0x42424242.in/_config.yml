@@ -51,8 +51,6 @@ defaults:
       type: "pages"
     values:
       add_to_navbar: false
-      pagination:
-        enabled: true
 
 
 # Exclude from processing.
