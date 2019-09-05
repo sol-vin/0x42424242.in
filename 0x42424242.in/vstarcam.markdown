@@ -12,7 +12,7 @@ All source code can be found on Github at [redcodefinal/vstarcam-investigational
  * [Part 1 - Intro](/vstarcam/1)
  * [Part 2 - Hardware](/vstarcam/2)
  * [Part 3 - Basic Sniffing](/vstarcam/3)
- * [Part 4 - Sniffing Android Client(/vstarcam/4)
+ * [Part 4 - Sniffing Android Client](/vstarcam/4)
  * [Part 5 - Writing a Client](/vstarcam/5)
  * [Part 6 - Replaying and Forging Requests](/vstarcam/6)
  * [Part 7 - Getting More Information](/vstarcam/7)
