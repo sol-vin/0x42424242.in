@@ -60,46 +60,4 @@ Using the digest method, we can attempt to determine our password hashes.
 [Done] exited with code=0 in 0.586 seconds
 </code></pre>
 
-Now let's do a little testing to see if there are parts of the protocol we can skip! For example, the beginning UDP dance might be skippable, let's write a simple program to attempt to go straight to the TCP port, 34567.
-
-<pre><code class="crystal">
-require "./dahua_hash"
-require "json"
-require "socket"
-
-def make_login_header(json)
-  "\xff\x01\x00\x00\x00\x00\x00\x00\x18\x00\x00\x00\x00\x00\xe8\x03#{String.new(Bytes[json.size])}\x00\x00\x00"
-end
-
-json_login = JSON.build do |json|
-  json.object do
-    json.field "EncryptType", "MD5"
-    json.field "LoginType", "DVRIP-Xm030"
-    json.field "UserName", "admin"
-    json.field "PassWord", Dahua.digest("password")
-  end
-end
-
-socket = TCPSocket.new("192.168.11.109", 34567)
-socket &lt;&lt; (make_login_header(json_login) + json_login)
-reply = socket.gets
-socket.close
-if reply
-  reply_parsed = JSON.parse reply[20...reply.size]
-  if reply_parsed["Ret"] == 100
-    puts "SUCCESS!"
-    exit    
-  end
-end
-puts "FAILURE!"
-</code></pre>
-
-AND IT WORKS!
-
-<pre><code>
-SUCCESS!
-
-[Done] exited with code=0 in 0.831 seconds
-</code></pre>
-
 [Part 5 &gt;&gt;](/xiongmai/5)

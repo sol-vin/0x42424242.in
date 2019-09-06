@@ -1,0 +1,162 @@
+---
+layout: post
+title:  "pixel_lang - 1 - Intro"
+date:   2019-09-05 00:00:00 +0100
+tags: pixel_lang, crystal, esolang
+permalink: /pixellang/1
+---
+
+Today I'm really excited to start a new series on pixel_lang, a pixel-based 2D esoteric language I wrote myself in Crystal. I've always really loved esoteric languages, and they can teach us a lot about programming. I enjoy the aspect of honing one's programming chops, and esoteric languages are filled with all sorts of interesting challenges. My goal in writing an esoteric language was to make a language with a large instruction set, that could be used to make art, programs, or some combination of the two.
+
+<center>
+<img src="{{ site.baseimg }}/images/pixellang/ackermann.gif" style="width: 100%; height: 100%;">
+</center>
+
+You can find all project files located on the [GitHub](https://github.com/redcodefinal/pixel_lang_crystal).
+
+The purpose of this article, is to give a basic introduction on how to use the [pixel_lang](https://github.com/redcodefinal/pixel_lang_crystal) interpreter, as well as the web interface, to load and run programs, as well as a basic explanation of how the system works.
+
+The [pixel_lang](https://github.com/redcodefinal/pixel_lang_crystal) interpreter takes an input PNG file, and uses that as it's program code. Each pixel in the PNG is read in, and stored into a 2D array of instructions. Any and all PNG files are valid program code and can be used with the interpreter without error but, may not start without the presence of a Start instruction, or will run infinitely. A program can be given input, either by providing an input string argument, or via the live interactive session (yet to be written). This interpreter is called the [Engine](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/engine.cr).
+
+[Engines](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/engine.cr) are comprised of a variable number of [pistons](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/piston.cr). These [pistons](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/piston.cr) act as separate instruction readers and act mostly independently of each other, save for a few exceptions. The starting number of [pistons](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/piston.cr) is determined by a program code's number of Start instructions. The [pistons](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/piston.cr) then each take turns, reading an instruction, executing it, and moving one step forward in the direction it's facing. When all [pistons](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/piston.cr) have run an instruction, that is called a cycle. The instruction type (known as a Control Code or CC) is determined by the upper 4 bits of the color of the pixel, the arguments for the instruction (known as the Control Value or CV) are the bottom 20 bits of the pixel's color.
+
+The full instruction list is as follows.
+
+* 0x0 - [End](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/00_end.cr)
+* 0x1 - [Start](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/01_start.cr)
+* 0x2 - [Pause](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/02_pause.cr)
+* 0x3 - [Direction](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/03_direction.cr)
+* 0x4 - [Fork](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/04_fork.cr)
+* 0x5 - [Jump](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/05_jump.cr)
+* 0x6 - [Call](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/06_call.cr)
+* 0x7 - [Return](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/07_return.cr)
+* 0x8 - [Insert](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/08_insert.cr)
+* 0x9 - [Move](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/09_move.cr)
+* 0xA - [Arithmetic](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/10_arithmetic.cr)
+* 0xB - [Output Char](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/11_output_char.cr)
+* 0xC - [Conditional](https://github.com/redcodefinal/pixel_lang_crystal/blob/master/src/pixel_lang_crystal/dev/helpers/color_docs/12_conditional.cr)
+* 0xD - [Instruction Meta](https://github.com/redcodefinal/pixel_lang_crystal/tree/master/src/pixel_lang_crystal/dev/helpers/color_docs/13_instruction_meta)
+* 0xE - [Engine Meta](https://github.com/redcodefinal/pixel_lang_crystal/tree/master/src/pixel_lang_crystal/dev/helpers/color_docs/14_engine_meta)
+* 0xF - Blank
+
+Some example instructions
+0xA00000 - Arithmetic(MA(0) + MA(0) -> MA(0))
+0x100100 - Start(direction: up, priority: 0x100)
+0x200010 - Pause(for 0x10 cycles)
+
+A Piston is deleted when it reads an End instruction, and when an Engine has no more Pistons, it is no longer running.
+
+Each Piston keeps track of a couple of things, it's current location, the values within it's own registers and memory, and a call stack (used with Call Return).
+The Piston has a total of 8 registers, which each hold a 20 bit integer, and each have special properties when read.
+
+The MA register is one of the simpler registers, it takes a value that is written to it, and when read from provides the last value written to it. The default value of this register is always 0x0.
+
+The MAV register is a little different. MAV is controlled by the MA register and when read from, provides the value in the Piston's memory at the location provided by MA. When written to it changes that memory's value. An uninitialized memory cell is always 0x0.
+
+For example, if you wrote 0 to the MA register, then read from MAV you'd get 0. If you wrote 1 to the MA register and then read from MAV you'd get 0. If you wrote 333 to the MAV register and read from MAV you'd get 333. If you wrote 0 to the MA register, then read from the MAV register, you'd get 0 again.
+
+The next two registers MB and MBV operate the same as MA and MAV, they even use the same memory pool, so if MA is equal to MB then MAV is always equal to MBV. MA and MB can both be used to reference two different values in the same Piston's memory. The MB register's default is 1.
+
+The next two registers are S and SV which work similar to MA and MAV except the memory pool they use is static, meaning all pistons can access this to communicate with each other.
+
+Next we have the I register, which acts like a stack. If written to, it adds a new value to the stack, when read from it pops from the stack. You can choose also to peek this register instead, keeping the value on the top of the stack.
+
+Lastly we have the O register, which is an output register. When read from, it provides the last character that was output from any piston, when set, writes the value to output.
+
+When pistons move off the edge of the program space, it appears on the other side, asteroids style.
+
+That's really all there is to the internals of the interpreter, the rest is pretty easy.
+
+There are two ways to interact with programs right now, there is the runner, and the web interface. I'd highly recommend using the web interface, it's not bad to use, runs pretty smoothly, and allows you to watch the programs execute step by step.
+
+To build the runner use `shards build runner`
+
+You can then run any program using `./bin/runner program_file "input text!!!!!"`
+
+You can run the web app by using `shards build web_app && ./bin/web_app`
+
+We will primarily focus on the web_app, as it is a lot easier to work with than the runner.
+
+<center>
+<img src="{{ site.baseimg }}/images/pixellang/1.png" style="width: 100%; height: 100%;">
+</center>
+
+You can create a new Engine with a program loaded using the bottom box on the home page, You must specify a name, and a program. When you open up a program it should look like below. 
+
+<center>
+<img src="{{ site.baseimg }}/images/pixellang/2.png" style="width: 100%; height: 100%;">
+</center>
+
+Pressing play will start an animation of the execution, showing the pistons moving and doing their work.
+
+<center>
+<img src="{{ site.baseimg }}/images/pixellang/primesieve.gif" style="width: 100%; height: 100%;">
+</center>
+
+The above program is the prime sieve of Eratosthenes, which is a special way to filter prime numbers.
+
+My other pride and joy program is the Ackermann function, I highly suggest checking it out.
+
+If you want to write your own programs, any picture editor will do, as long as it supports hex color input (like #AABBCC). Pictures should be saved as PNG. To add them to the web interface, navigate to pixel_lang_crystal/programs and put your files in there, and then restart the web_app. I suggest Aseprite to edit any programs, as it has a useful palette feature to rip all the unique colors out of a picture.
+
+The system also has a special way of helping make colors for you. For this, I would highly recommend opening crystal play in the pixel_lang_crystal directory and using that.
+
+<center>
+<img src="{{ site.baseimg }}/images/pixellang/3.png" style="width: 100%; height: 100%;">
+</center>
+
+## Basic Instructions
+
+In this segment, we will cover some basic instructions, enough to make our own first Hello World program.
+
+### Start
+The Start instruction is used to place pistons when starting the program. Each Start instruction can contain two arguments, what direction the Start is facing (up, down, left, right), and the priority, which describes in what order the pistons all run in. A piston with a priority of 0 runs before a piston with priority 100. 
+
+### End
+The End instruction removes a piston from the program space. If all pistons are gone off of the program space, the program has ended. Without an End instruction, a program will run indefinitely. End takes no arguments.
+
+### Direction
+Direction changes the current direction the piston is going to one of 8, stored in it's arguments.
+
+* Up
+* Down
+* Left
+* Right
+* Turn Left
+* Turn Right
+* Reverse
+* Straight (No operation)
+
+### Jump
+Jump moves a piston in the direction it's facing, a number of spaces determined by it's argument. (0x0 - 0xFFFFF).
+
+For example, Jump 0 jumps only one space, Jump 1 jumps 2 spaces, etc etc.
+
+Jumps that jump a piston off the program space wrap the piston back around.
+
+
+### OutputChar
+Outputs the char defined in the arguments. For example, OutputChar H would be 0xB00048.
+
+### Putting it all together
+
+Now we have all the instructions we need to try a Hello World program! Let's put them all together.
+
+The only three instructions we need are Start, End, and OutputChar. We can use crystal play to mix all our colors for us.
+
+<center>
+<img src="{{ site.baseimg }}/images/pixellang/5.png" style="width: 100%; height: 100%;">
+</center>
+
+Next we just need to put them all into a PNG, open up your favorite pixel art editor and let's go!
+
+<center>
+<img src="{{ site.baseimg }}/images/pixellang/6.png" style="width: 100%; height: 100%;">
+</center>
+
+If we open up the file and play it in the web app, we can see the output works!
+
+<center>
+<img src="{{ site.baseimg }}/images/pixellang/7.png" style="width: 100%; height: 100%;">
+</center>
+
