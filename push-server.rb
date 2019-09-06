@@ -1,3 +1,5 @@
+require "sinatra"
+
 # Bind this publicly so github's webhooks can POST
 set :bind, '0.0.0.0'
 set :port, 33333
@@ -40,7 +42,7 @@ def restart_web_server(clean_and_download = false)
   kill_web_server
   if clean_and_download
     `rm -rf 0x42424242.in`
-    `git clone git@specialgithuburl.com:redcodefinal/0x42424242.in.git`
+    `git clone git@github.local:redcodefinal/0x42424242.in.git`
     `mv -f 0x42424242.in/0x42424242.in/* 0x42424242.in/`
   end
 
