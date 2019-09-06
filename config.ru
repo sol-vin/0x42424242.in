@@ -3,5 +3,5 @@ require 'bundler'
 
 Bundler.require
 
-require './push_server'
+require './push_server.rb'
 run Sinatra::Application
