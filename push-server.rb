@@ -1,8 +1,3 @@
-#!/usr/bin/env ruby
-
-require 'sinatra'
-require 'json'
-
 # Bind this publicly so github's webhooks can POST
 set :bind, '0.0.0.0'
 set :port, 33333
