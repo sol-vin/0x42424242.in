@@ -2,7 +2,7 @@
 layout: post
 title:  "Xiongmai - An Investigative Journey 9 - Denial of Service"
 date:   2019-09-04 08:00:00 +0100
-tags: xiongmai, hacking, ipc
+tags: xiongmai, hacking, ipc, denial of service, dos
 permalink: /xiongmai/9
 ---
 During my fuzzing with Radamsa I uncovered a DoS that would take my camera down via the unprivileged user account. Lets find out exactly what caused the crash!
