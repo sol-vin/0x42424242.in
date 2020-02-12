@@ -5,7 +5,7 @@ permalink: /pixellang/
 add_to_navbar: false
 ---
 
-A journey through a horribly insecure webcam, and the discovery, and fruititon of a client hijacking exploit.
+An esoteric language entirely in pixels.
 
 All source code can be found on Github at [redcodefinal/pixel_lang_crystal](https://github.com/redcodefinal/pixel_lang_crystal)
 
