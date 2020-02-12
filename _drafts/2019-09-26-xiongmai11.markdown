@@ -1,8 +1,0 @@
----
-layout: post
-title:  "Xiongmai - An Investigative Journey 11 - Firmware Analysis"
-date:   2019-09-26 00:00:00 +0100
-tags: xiongmai, hacking, ipc, binwalk, firmware, reverse engineering
-permalink: /xiongmai/11
-draft: true
----
