@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "pixel_lang - 3 - Showcase"
-date:   2019-09-05 02:00:00 +0100
+date:   2019-09-07 02:00:00 +0100
 tags: pixel_lang, crystal, esolang
 permalink: /pixellang/3
 ---
