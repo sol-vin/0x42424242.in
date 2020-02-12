@@ -2,7 +2,7 @@
 layout: post
 title:  "Xiongmai - An Investigative Journey 4 - Hashing"
 date:   2019-09-04 03:00:00 +0100
-tags: xiongmai, hacking, ipc
+tags: hacking, ipc
 permalink: /xiongmai/4
 ---
 We also finally got some passwords, but they were hashed, so we are going to need to figure out what method the manufacturer used. First thing to notice is that, in other captures, the PassWord field is always the same, meaning chances are we aren't dealing with a random [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)) every time. If they do use a salt it must be hard coded into the camera itself, but this is unlikely. What IS really weird about this hash is that it says it's "MD5" but the hash itself is only 8 bytes, where MD5 has 16. This means that there is some hashing protocol, but it is custom and built upon MD5.

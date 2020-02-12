@@ -2,7 +2,7 @@
 layout: post
 title:  "Xiongmai - An Investigative Journey 3 - Software Overview and Audit"
 date:   2019-09-04 02:00:00 +0100
-tags: xiongmai, hacking, ipc
+tags: hacking, ipc
 permalink: /xiongmai/3
 ---
 I plan to do the same thing I did with the VStarCam, capture packets, read through them, get a basic idea for the connection process, and start writing my very own client! First things first, we want to get an idea of a couple things,

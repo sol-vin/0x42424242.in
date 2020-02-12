@@ -2,7 +2,7 @@
 layout: post
 title:  "Xiongmai - An Investigative Journey 7 - Fuzzing With Radamsa"
 date:   2019-09-04 06:00:00 +0100
-tags: xiongmai, hacking, ipc
+tags: fuzzing, hacking, ipc
 permalink: /xiongmai/7
 ---
 I'd never heard of this tool, until I happened to stumble upon it in a [LiveOverflow](https://www.youtube.com/watch?v=kMu1J8QdxE8) video. The tool is, very neat to say the least. It takes an input "sample" data, and mutates it in various ways to cause potential bad behavior in an application.

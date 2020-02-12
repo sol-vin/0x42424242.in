@@ -2,7 +2,7 @@
 layout: post
 title:  "Xiongmai - An Investigative Journey 6 - Advanced Fuzzing"
 date:   2019-09-04 05:00:00 +0100
-tags: xiongmai, hacking, ipc
+tags: fuzzing, hacking, ipc
 permalink: /xiongmai/6
 ---
 During my testing I noticed an interesting quirk of this protocol, the server (camera) would allow as many connections as one wanted open to the same ip address, so long as they were all on different ports. This meant that if I could create a "pool" of sockets, I could use them to audit multiple magics at once, each waiting for their own replies.

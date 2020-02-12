@@ -19,7 +19,43 @@ layout: default
     {{ content }}
   </div>
 
-  <p>Tags: {{ page.tags }} </p>
+  <p>
+    Tags:
+    {% assign sorted_tags = page.tags | sort %}
+    {% for tag in sorted_tags %}
+      {% if tag contains "ipc" %}
+        <i class="fas fa-cctv"></i>
+      {% endif %}
+      {% if tag contains "dos" %}
+        <i class="fas fa-do-not-enter"></i>
+      {% endif %}
+      {% if tag contains "hardware" %}
+        <i class="fas fa-microchip"></i>
+      {% endif %}
+      {% if tag contains "sniffing" %}
+        <i class="fas fa-dog"></i>
+      {% endif %}
+      {% if tag contains "crystal" %}
+        <i class="far fa-gem"></i>
+      {% endif %}
+      {% if tag contains "client" %}
+        <i class="fas fa-user"></i>
+      {% endif %}
+      {% if tag contains "fuzzing" %}
+        <i class="fas fa-cat"></i>
+      {% endif %}
+      {% if tag contains "hacking" %}
+        <i class="fas fa-user-secret"></i>
+      {% endif %}
+      {% if tag contains "pixel_lang" %}
+        <i class="fas fa-image"></i>
+      {% endif %}
+      {% if tag contains "esolang" %}
+        <i class="fas fa-puzzle-piece"></i>
+      {% endif %}
+      {{tag}}
+    {% endfor %}
+  </p>
 
   {%- if site.disqus.shortname -%}
     {%- include disqus_comments.html -%}

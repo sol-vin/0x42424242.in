@@ -2,7 +2,7 @@
 layout: post
 title:  "Xiongmai - An Investigative Journey 5 - Basic Fuzzing"
 date:   2019-09-04 04:00:00 +0100
-tags: xiongmai, hacking, ipc
+tags: fuzzing, hacking, ipc
 permalink: /xiongmai/5
 ---
 When dealing with a protocol where the source code and implementation are secret to us,we need to do certain kinds of testing to find out how to format data appropriately, as well as determine what can change behavior, what can be ignored, and what we need to pay attention to.

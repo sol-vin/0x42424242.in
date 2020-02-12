@@ -2,7 +2,7 @@
 layout: post
 title:  "VStarCam - An Investigative Journey 4 - Sniffing Android Client"
 date:   2019-09-03 03:00:00 +0100
-tags: vstarcam, hacking, ipc, wireshark
+tags: sniffing, hacking, ipc
 permalink: /vstarcam/4
 ---
 

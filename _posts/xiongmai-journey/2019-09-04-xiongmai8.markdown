@@ -2,7 +2,7 @@
 layout: post
 title:  "Xiongmai - An Investigative Journey 8 - Brute Force"
 date:   2019-09-04 07:00:00 +0100
-tags: xiongmai, hacking, ipc
+tags: hacking, ipc
 permalink: /xiongmai/8
 ---
 Looking at the hashing format, we know it's going to have collisions. To find out the plain-text password to the backdoor user account, we are going to need to take some time and brute force the hash to find the plain text password. I just want to point out, this step is mostly unnecessary, since the hash is as good as the plain text password when logging into the camera. Regardless, it would still be a good idea to crack it, just in case.

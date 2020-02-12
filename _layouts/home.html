@@ -15,7 +15,41 @@ layout: default
       -->
       {% for post in paginator.posts %}
         <li>
-          <span class="post-meta">{{ post.date | date: "%b %-d, %Y @ %l%P" }}</span>
+          <span class="post-meta">{{ post.date | date: "%b %-d, %Y @ %l%P" }}&nbsp;
+            {% assign sorted_tags = post.tags | sort %}
+            {% for tag in sorted_tags %}
+              {% if tag contains "ipc" %}
+                <i class="fas fa-cctv" title="IPC"></i>
+              {% endif %}
+              {% if tag contains "dos" %}
+                <i class="fas fa-do-not-enter" title="DoS"></i>
+              {% endif %}
+              {% if tag contains "hardware" %}
+                <i class="fas fa-microchip" title="Hardware"></i>
+              {% endif %}
+              {% if tag contains "sniffing" %}
+                <i class="fas fa-dog" title="Sniffing"></i>
+              {% endif %}
+              {% if tag contains "crystal" %}
+                <i class="far fa-gem" title="Crystal"></i>
+              {% endif %}
+              {% if tag contains "client" %}
+                <i class="fas fa-user" title="Client"></i>
+              {% endif %}
+              {% if tag contains "fuzzing" %}
+                <i class="fas fa-cat" title="Fuzzing"></i>
+              {% endif %}
+              {% if tag contains "hacking" %}
+                <i class="fas fa-user-secret" title="Hacking"></i>
+              {% endif %}
+              {% if tag contains "pixel_lang" %}
+                <i class="fas fa-image" title="pixel_lang"></i>
+              {% endif %}
+              {% if tag contains "esolang" %}
+                <i class="fas fa-puzzle-piece" title="esolang"></i>
+              {% endif %}
+            {% endfor %}
+          </span>
   
           <h2>
             <a class="post-link" href="{{ post.url | relative_url }}">{{ post.title | escape }}</a>
