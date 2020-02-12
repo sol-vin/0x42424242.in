@@ -5,6 +5,7 @@ date:   2019-09-06 01:00:00 +0100
 tags: pixel_lang, crystal, esolang
 permalink: /pixellang/2
 future: true
+published: true
 ---
 
 We covered Start, End, and Output Char in the last section, next we want to use Direction and Jump. Let's create a version of Hello World that does some crafty maneuvering to only use a single output char instruction for each character of "Hello World!". First we need to make the instructions we need to use.
